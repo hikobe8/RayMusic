@@ -2,7 +2,6 @@ package com.ray.raymusic;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.ray.musicplayer.Demo;
