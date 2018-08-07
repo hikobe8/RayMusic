@@ -1,38 +1,29 @@
 #include <jni.h>
 #include <string>
-#include <android/log.h>
 extern "C"
 {
 #include <libavformat/avformat.h>
 }
 
-#define LOGI(FORMAT,...) __android_log_print(ANDROID_LOG_INFO,"RayMusic_native",FORMAT,##__VA_ARGS__);
+JavaVM * javaVM = NULL;
 
-extern "C" JNIEXPORT jstring
-
-JNICALL
-Java_com_ray_musicplayer_Demo_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-
-    av_register_all();
-    AVCodec *c_temp = av_codec_next(NULL);
-    while (c_temp != NULL) {
-        switch (c_temp->type) {
-            case  AVMEDIA_TYPE_AUDIO:
-                LOGI("[Audio]:%s", c_temp->name);
-                break;
-            case  AVMEDIA_TYPE_VIDEO:
-                LOGI("[Video]:%s", c_temp->name);
-                break;
-            default:
-                LOGI("[Other]:%s", c_temp->name);
-                break;
-        }
-        c_temp = c_temp->next;
+extern "C" JNIEXPORT jint JNICALL JNI_Onload(JavaVM * vm, void* reversed) {
+    javaVM = vm;
+    int result = -1;
+    JNIEnv *env = NULL;
+    if (javaVM->GetEnv((void **)(env), JNI_VERSION_1_4) != JNI_OK) {
+        return result;
     }
+    return JNI_VERSION_1_4;
+}
 
 
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1prepare(JNIEnv *env, jobject instance, jstring source_) {
+    const char *source = env->GetStringUTFChars(source_, 0);
+
+    // TODO
+
+    env->ReleaseStringUTFChars(source_, source);
 }
