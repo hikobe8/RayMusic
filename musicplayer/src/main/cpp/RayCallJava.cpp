@@ -3,7 +3,7 @@
 //
 
 #include "RayCallJava.h"
-#include "AndnroidLog.h"
+#include "AndroidLog.h"
 
 RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject *obj) {
     this->javaVM = javaVM;

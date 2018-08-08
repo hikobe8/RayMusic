@@ -4,7 +4,8 @@
 
 #include "RayFFmpeg.h"
 
-RayFFmpeg::RayFFmpeg(RayCallJava *rayCallJava, const char *url) {
+RayFFmpeg::RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const char *url) {
+    this->playStatus = playStatus;
     this->callJava = rayCallJava;
     this->url = url;
     this->avFormatContext = NULL;
@@ -44,7 +45,7 @@ void RayFFmpeg::decodeByFFmepg() {
     for (int i = 0; i < avFormatContext->nb_streams; i++) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (rayAudio == NULL) {
-                rayAudio = new RayAudio();
+                rayAudio = new RayAudio(playStatus);
                 rayAudio->streamIndex = i;
                 rayAudio->codecpar = avFormatContext->streams[i]->codecpar;
             }
@@ -103,8 +104,7 @@ void RayFFmpeg::start() {
                 if (LOG_DEBUG) {
                     LOGE("解码第 %d 帧", count);
                 }
-                av_packet_unref(avPacket);
-                av_free(avPacket);
+                rayAudio->queuePacket->putPacket(avPacket);
             } else{
                 av_packet_unref(avPacket);
                 av_free(avPacket);
@@ -115,4 +115,13 @@ void RayFFmpeg::start() {
             break;
         }
     }
+
+    while (rayAudio->queuePacket->getSize() > 0) {
+        AVPacket *avPacket = av_packet_alloc();
+        rayAudio->queuePacket->getPacket(avPacket);
+        av_packet_unref(avPacket);
+        av_free(avPacket);
+    }
+    LOGE("decode complete!");
+
 }

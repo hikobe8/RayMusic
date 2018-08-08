@@ -11,7 +11,7 @@ import com.ray.musicplayer.BuildConfig;
  */
 public class MyLog {
 
-    private static final String TAG = "MyLog";
+    private static final String TAG = "RayMusic";
 
     public static void i(String msg) {
         Log.i(TAG, msg);

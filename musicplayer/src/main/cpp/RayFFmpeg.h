@@ -7,8 +7,9 @@
 
 #include "RayCallJava.h"
 #include "pthread.h"
-#include "AndnroidLog.h"
+#include "AndroidLog.h"
 #include "RayAudio.h"
+#include "RayPlayStatus.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -23,9 +24,10 @@ public:
     pthread_t decodeThread;
     AVFormatContext *avFormatContext;
     RayAudio *rayAudio = NULL;
+    RayPlayStatus* playStatus;
 
 public:
-    RayFFmpeg(RayCallJava *rayCallJava, const char *url);
+    RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const char *url);
 
     ~RayFFmpeg();
 

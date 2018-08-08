@@ -4,8 +4,8 @@
 
 #include "RayAudio.h"
 
-RayAudio::RayAudio() {
-
+RayAudio::RayAudio(RayPlayStatus* playStatus) {
+    this->queuePacket = new RayQueue(playStatus);
 }
 
 RayAudio::~RayAudio() {

@@ -11,7 +11,9 @@ add_library( # Sets the name of the library.
              src/main/cpp/native-lib.cpp
              src/main/cpp/RayAudio.cpp
              src/main/cpp/RayFFmpeg.cpp
-             src/main/cpp/RayCallJava.cpp)
+             src/main/cpp/RayCallJava.cpp
+             src/main/cpp/RayQueue.cpp
+             src/main/cpp/RayPlayStatus.cpp)
 
 add_library( avcodec-57 SHARED IMPORTED)
 set_target_properties( avcodec-57

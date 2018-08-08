@@ -12,7 +12,7 @@ extern "C"
 JavaVM *javaVM = NULL;
 RayCallJava *rayCallJava = NULL;
 RayFFmpeg *rayFFmpeg = NULL;
-
+RayPlayStatus* playStatus = NULL;
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reversed) {
     javaVM = vm;
@@ -33,7 +33,8 @@ Java_com_ray_player_RayPlayer_native_1prepare(JNIEnv *env, jobject instance, jst
         if (rayCallJava == NULL) {
             rayCallJava = new RayCallJava(javaVM, env, &instance);
         }
-        rayFFmpeg = new RayFFmpeg(rayCallJava, source);
+        playStatus = new RayPlayStatus();
+        rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, source);
     }
     rayFFmpeg->prepare();
 
