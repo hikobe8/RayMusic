@@ -53,6 +53,21 @@ public class RayPlayer {
             mPlayerPrepareListener.onPrepared();
     }
 
+    public void start() {
+        if (TextUtils.isEmpty(mSource)) {
+            MyLog.e("play source can't be empty!");
+            return;
+        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                native_start();
+            }
+        }).start();
+    }
+
     private native void native_prepare(String source);
+
+    private native void native_start();
 
 }

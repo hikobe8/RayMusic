@@ -19,9 +19,11 @@ public:
     jmethodID jMIDPrepare;
 
 public:
-    RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
+    RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject *obj);
+
     ~RayCallJava();
-    void onCallPrapared(int type);
+
+    void onCallPrepared(int type);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H
