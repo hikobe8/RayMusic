@@ -95,8 +95,9 @@ void RayFFmpeg::start() {
         }
         return;
     }
+    rayAudio->play();
     int count = 0;
-    while (1) {
+    while (playStatus != NULL && !playStatus->exit) {
         AVPacket *avPacket = av_packet_alloc();
         if (av_read_frame(avFormatContext, avPacket) == 0) {
             if (avPacket->stream_index == rayAudio->streamIndex) {
@@ -112,16 +113,18 @@ void RayFFmpeg::start() {
         } else {
             av_packet_unref(avPacket);
             av_free(avPacket);
-            break;
+            while (playStatus != NULL && !playStatus->exit) {
+                if (rayAudio->queuePacket->getSize() > 0) {
+                    continue;
+                } else{
+                    playStatus->exit = true;
+                    break;
+                }
+            }
         }
     }
-
-    while (rayAudio->queuePacket->getSize() > 0) {
-        AVPacket *avPacket = av_packet_alloc();
-        rayAudio->queuePacket->getPacket(avPacket);
-        av_packet_unref(avPacket);
-        av_free(avPacket);
+    if (LOG_DEBUG) {
+        LOGE("解码完成!");
     }
-    LOGE("decode complete!");
 
 }

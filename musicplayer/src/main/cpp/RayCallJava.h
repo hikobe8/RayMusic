@@ -9,6 +9,7 @@
 #define CHILD_THEAD 1
 
 #include "jni.h"
+#include <linux/stddef.h>
 
 class RayCallJava {
 

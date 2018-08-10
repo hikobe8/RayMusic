@@ -7,6 +7,7 @@
 
 #include "queue"
 #include "pthread.h"
+#include "AndroidLog.h"
 #include "RayPlayStatus.h"
 
 extern "C"{
@@ -25,7 +26,7 @@ public:
     RayQueue(RayPlayStatus* playStatus);
     ~RayQueue();
     void putPacket(AVPacket * packet);
-    void getPacket(AVPacket * packet);
+    int getPacket(AVPacket * packet);
     int getSize();
 
 };

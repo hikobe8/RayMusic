@@ -3,7 +3,6 @@
 //
 
 #include "RayQueue.h"
-#include "AndroidLog.h"
 
 RayQueue::RayQueue(RayPlayStatus* playStatus) {
     this->playStatus = playStatus;
@@ -21,25 +20,27 @@ void RayQueue::putPacket(AVPacket *packet) {
     pthread_mutex_unlock(&mutexPacket);
 }
 
-void RayQueue::getPacket(AVPacket *packet) {
+int RayQueue::getPacket(AVPacket *packet) {
     pthread_mutex_lock(&mutexPacket);
     while (playStatus != NULL && !playStatus->exit) {
         if (queuePacket.size() > 0) {
             AVPacket *avPacket = queuePacket.front();
             if (av_packet_ref(packet, avPacket) == 0) {
                 queuePacket.pop();
-                if (LOG_DEBUG) {
-                    LOGD("AVPacket dequeue, size = %d", queuePacket.size());
-                }
             }
             av_packet_unref(avPacket);
             av_free(avPacket);
+            if(LOG_DEBUG)
+            {
+                LOGD("从队列里面取出一个AVpacket，还剩下 %d 个", queuePacket.size());
+            }
             break;
         } else{
             pthread_cond_wait(&condPacket, &mutexPacket);
         }
     }
     pthread_mutex_unlock(&mutexPacket);
+    return 0;
 }
 
 RayQueue::~RayQueue() {

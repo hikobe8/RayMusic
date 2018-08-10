@@ -7,7 +7,6 @@ extern "C"
 }
 
 #include "RayFFmpeg.h"
-#include "RayCallJava.h"
 
 JavaVM *javaVM = NULL;
 RayCallJava *rayCallJava = NULL;

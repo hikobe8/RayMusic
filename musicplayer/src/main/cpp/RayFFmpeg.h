@@ -7,14 +7,12 @@
 
 #include "RayCallJava.h"
 #include "pthread.h"
-#include "AndroidLog.h"
 #include "RayAudio.h"
 #include "RayPlayStatus.h"
-
-extern "C" {
+extern "C"
+{
 #include "libavformat/avformat.h"
-#include "libavcodec/avcodec.h"
-}
+};
 
 class RayFFmpeg {
 
