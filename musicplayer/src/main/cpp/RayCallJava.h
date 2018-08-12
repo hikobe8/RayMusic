@@ -20,7 +20,7 @@ public:
     jmethodID jMIDPrepare;
 
 public:
-    RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject *obj);
+    RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
 
     ~RayCallJava();
 

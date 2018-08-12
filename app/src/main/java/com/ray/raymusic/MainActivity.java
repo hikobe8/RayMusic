@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -13,8 +12,6 @@ import android.view.View;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 import com.ray.player.RayPlayer;
-
-import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
                         player.start();
                     }
                 });
-        player.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-//                player.setSource(Environment.getExternalStorageDirectory() + File.separator + "output.mp3");
+                player.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//                player.setSource(Environment.getExternalStorageDirectory() + File.separator + "Duck.mp3");
                 player.prepare();
             } else {
                 requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
@@ -57,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 player.start();
             }
         });
-//        player.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-        player.setSource(Environment.getExternalStorageDirectory() + File.separator + "test.mp3");
+        player.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//        player.setSource(Environment.getExternalStorageDirectory() + File.separator + "Duck.mp3");
         player.prepare();
     }
 }

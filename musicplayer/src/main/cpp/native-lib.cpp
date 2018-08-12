@@ -30,7 +30,7 @@ Java_com_ray_player_RayPlayer_native_1prepare(JNIEnv *env, jobject instance, jst
     const char *source = env->GetStringUTFChars(source_, 0);
     if (rayFFmpeg == NULL) {
         if (rayCallJava == NULL) {
-            rayCallJava = new RayCallJava(javaVM, env, &instance);
+            rayCallJava = new RayCallJava(javaVM, env, instance);
         }
         playStatus = new RayPlayStatus();
         rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, source);

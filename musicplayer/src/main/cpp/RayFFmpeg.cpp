@@ -107,12 +107,14 @@ void RayFFmpeg::start() {
                 }
                 rayAudio->queuePacket->putPacket(avPacket);
             } else{
-                av_packet_unref(avPacket);
+                av_packet_free(&avPacket);
                 av_free(avPacket);
+                avPacket = NULL;
             }
         } else {
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
+            avPacket = NULL;
             while (playStatus != NULL && !playStatus->exit) {
                 if (rayAudio->queuePacket->getSize() > 0) {
                     continue;

@@ -5,10 +5,10 @@
 #include "RayCallJava.h"
 #include "AndroidLog.h"
 
-RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject *obj) {
+RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
     this->javaVM = javaVM;
     this->jniEnv = env;
-    this->jobj = *obj;
+    this->jobj = obj;
     this->jobj = env->NewGlobalRef(jobj);
 
     jclass jclz = jniEnv->GetObjectClass(jobj);

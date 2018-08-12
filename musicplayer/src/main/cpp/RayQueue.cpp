@@ -28,8 +28,9 @@ int RayQueue::getPacket(AVPacket *packet) {
             if (av_packet_ref(packet, avPacket) == 0) {
                 queuePacket.pop();
             }
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
+            avPacket = NULL;
             if(LOG_DEBUG)
             {
                 LOGD("从队列里面取出一个AVpacket，还剩下 %d 个", queuePacket.size());

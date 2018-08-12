@@ -29,14 +29,14 @@ int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
         avPacket = av_packet_alloc();
         if (queuePacket->getPacket(avPacket) != 0) {
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
             continue;
         }
         ret = avcodec_send_packet(avCodecContext, avPacket);
         if (ret != 0) {
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
             continue;
@@ -61,10 +61,10 @@ int RayAudio::resampleAudio() {
                                          NULL, NULL);
 
             if (!swr_ctx || swr_init(swr_ctx) < 0) {
-                av_packet_unref(avPacket);
+                av_packet_free(&avPacket);
                 av_free(avPacket);
                 avPacket = NULL;
-                av_frame_unref(avFrame);
+                av_frame_free(&avFrame);
                 av_free(avFrame);
                 avFrame = NULL;
                 swr_free(&swr_ctx);
@@ -80,18 +80,18 @@ int RayAudio::resampleAudio() {
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
             LOGE("DataSize = %d", data_size);
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
-            av_frame_unref(avFrame);
+            av_frame_free(&avFrame);
             av_free(avFrame);
             avFrame = NULL;
             swr_free(&swr_ctx);
         } else {
-            av_packet_unref(avPacket);
+            av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
-            av_frame_unref(avFrame);
+            av_frame_free(&avFrame);
             av_free(avFrame);
             avFrame = NULL;
             continue;
