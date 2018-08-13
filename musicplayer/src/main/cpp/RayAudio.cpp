@@ -4,8 +4,9 @@
 
 #include "RayAudio.h"
 
-RayAudio::RayAudio(RayPlayStatus *playStatus) {
+RayAudio::RayAudio(RayPlayStatus *playStatus, int sample_rate) {
     this->playStatus = playStatus;
+    this->sample_rate = sample_rate;
     this->queuePacket = new RayQueue(playStatus);
     buffer = (uint8_t *) (av_malloc(44100 * 2 * 2));
 }
@@ -17,7 +18,7 @@ RayAudio::~RayAudio() {
 void *resampleRunnable(void *data) {
     //!!!fatal error :   RayAudio *audio = (RayAudio *) (&data);
     RayAudio *audio = (RayAudio *) (data);
-    audio->resampleAudio();
+    audio->initOpenSLES();
     pthread_exit(&audio->play_thread);
 }
 
@@ -25,8 +26,6 @@ void *resampleRunnable(void *data) {
 void RayAudio::play() {
     pthread_create(&play_thread, NULL, resampleRunnable, this);
 }
-
-FILE *outFile = fopen("/storage/emulated/0/mymusic.pcm", "w");
 
 int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
@@ -59,7 +58,7 @@ int RayAudio::resampleAudio() {
                                          AV_SAMPLE_FMT_S16,
                                          avFrame->sample_rate,
                                          avFrame->channel_layout,
-                                         (AVSampleFormat)(avFrame->format),
+                                         (AVSampleFormat) (avFrame->format),
                                          avFrame->sample_rate,
                                          NULL, NULL);
 
@@ -83,7 +82,6 @@ int RayAudio::resampleAudio() {
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
             LOGE("DataSize = %d", data_size);
-            fwrite(buffer, 1, data_size, outFile);
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -91,6 +89,7 @@ int RayAudio::resampleAudio() {
             av_free(avFrame);
             avFrame = NULL;
             swr_free(&swr_ctx);
+            break;
         } else {
             av_packet_free(&avPacket);
             av_free(avPacket);
@@ -101,6 +100,111 @@ int RayAudio::resampleAudio() {
             continue;
         }
     }
-    fclose(outFile);
     return data_size;
+}
+
+void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
+                       void *pContext) {
+    RayAudio *rayAudio = (RayAudio *) (pContext);
+    int dataSize = rayAudio->resampleAudio();
+    (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, dataSize);
+}
+
+void RayAudio::initOpenSLES() {
+    //1.创建引擎对象
+    slCreateEngine(&slEngineObjectItf, 0, 0, 0, 0, 0);
+    (*slEngineObjectItf)->Realize(slEngineObjectItf, SL_BOOLEAN_FALSE);
+    (*slEngineObjectItf)->GetInterface(slEngineObjectItf, SL_IID_ENGINE, &slEngineItf);
+
+    const SLInterfaceID pInterfaceIds[1] = {SL_IID_ENVIRONMENTALREVERB};
+    const SLboolean pInterfaceRequireds[1] = {SL_BOOLEAN_FALSE};
+    //2.创建混音器
+    (*slEngineItf)->CreateOutputMix(slEngineItf, &outputObjectItf, 1, pInterfaceIds,
+                                    pInterfaceRequireds);
+    (*outputObjectItf)->Realize(outputObjectItf, SL_BOOLEAN_FALSE);
+    (*outputObjectItf)->GetInterface(outputObjectItf, SL_IID_ENVIRONMENTALREVERB,
+                                     &outputMixEnvironmentalReverb);
+
+    (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(outputMixEnvironmentalReverb,
+                                                                      &reverbSettings);
+    SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, outputObjectItf};
+    //3.创建播放器
+    SLDataLocator_AndroidSimpleBufferQueue android_queue = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE,
+                                                            2};
+    SLDataFormat_PCM pcm = {
+            SL_DATAFORMAT_PCM,//数据格式
+            2,//声道格式
+            (SLuint32)(getSampleRateForOpenSLES(sample_rate)), //采样率
+            SL_PCMSAMPLEFORMAT_FIXED_16,
+            SL_PCMSAMPLEFORMAT_FIXED_16,
+            SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+            SL_BYTEORDER_LITTLEENDIAN
+    };
+    SLDataSource dataSource = {&android_queue, &pcm};
+    SLDataSink dataSink = {&outputMix, NULL};
+    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME};
+    const SLboolean reqs[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+    (*slEngineItf)->CreateAudioPlayer(slEngineItf, &playerObject, &dataSource, &dataSink, 3, ids,
+                                      reqs);
+    //初始化播放器
+    (*playerObject)->Realize(playerObject, SL_BOOLEAN_FALSE);
+    //得到接口
+    (*playerObject)->GetInterface(playerObject, SL_IID_PLAY, &pcmPlayerPlay);
+
+    //4创建缓冲区和回调函数
+    (*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &pcmBufferQueue);
+    //缓冲接口回调
+    (*pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
+    //获取音量接口
+    (*playerObject)->GetInterface(playerObject, SL_IID_VOLUME, &pcmVolumeItf);
+    //设置播放状态
+    (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
+
+    pcmBufferCallback(pcmBufferQueue, this);
+}
+
+int RayAudio::getSampleRateForOpenSLES(int sample_rate) {
+    int rate = 0;
+    switch (sample_rate) {
+        case 8000000:
+            rate = SL_SAMPLINGRATE_8;
+            break;
+        case 11025000:
+            rate = SL_SAMPLINGRATE_11_025;
+            break;
+        case 16000000:
+            rate = SL_SAMPLINGRATE_12;
+            break;
+        case 22050000:
+            rate = SL_SAMPLINGRATE_22_05;
+            break;
+        case 24000000:
+            rate = SL_SAMPLINGRATE_24;
+            break;
+        case 32000000:
+            rate = SL_SAMPLINGRATE_32;
+            break;
+        case 44100000:
+            rate = SL_SAMPLINGRATE_44_1;
+            break;
+        case 48000000:
+            rate = SL_SAMPLINGRATE_48;
+            break;
+        case 64000000:
+            rate = SL_SAMPLINGRATE_64;
+            break;
+        case 88200000:
+            rate = SL_SAMPLINGRATE_88_2;
+            break;
+        case 96000000:
+            rate = SL_SAMPLINGRATE_96;
+            break;
+        case 192000000:
+            rate = SL_SAMPLINGRATE_192;
+            break;
+        default:
+            rate = SL_SAMPLINGRATE_44_1;
+            break;
+    }
+    return rate;
 }

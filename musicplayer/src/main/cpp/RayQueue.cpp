@@ -33,7 +33,7 @@ int RayQueue::getPacket(AVPacket *packet) {
             avPacket = NULL;
             if(LOG_DEBUG)
             {
-                LOGD("从队列里面取出一个AVPacket，还剩下 %ld 个", queuePacket.size());
+                LOGD("从队列里面取出一个AVPacket，还剩下 %d 个", queuePacket.size());
             }
             break;
         } else{

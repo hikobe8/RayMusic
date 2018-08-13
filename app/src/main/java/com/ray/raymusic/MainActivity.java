@@ -19,7 +19,7 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
 
 
-    private static final boolean TEST_NET_SWITCH = false;
+    private static final boolean TEST_NET_SWITCH = true;
 
     private static final String TEST_FILE = "output.mp3";
 

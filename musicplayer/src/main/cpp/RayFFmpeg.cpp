@@ -45,7 +45,7 @@ void RayFFmpeg::decodeByFFmepg() {
     for (int i = 0; i < avFormatContext->nb_streams; i++) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (rayAudio == NULL) {
-                rayAudio = new RayAudio(playStatus);
+                rayAudio = new RayAudio(playStatus, avFormatContext->streams[i]->codecpar->sample_rate);
                 rayAudio->streamIndex = i;
                 rayAudio->codecpar = avFormatContext->streams[i]->codecpar;
             }
