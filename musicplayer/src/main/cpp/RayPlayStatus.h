@@ -9,6 +9,7 @@
 class RayPlayStatus {
 public:
     bool exit;
+    bool isLoading;
 public:
     RayPlayStatus();
 };

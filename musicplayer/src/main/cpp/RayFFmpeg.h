@@ -34,6 +34,12 @@ public:
     void decodeByFFmepg();
 
     void start();
+
+    void pause();
+
+    void resume();
+
+    void stop();
 };
 
 

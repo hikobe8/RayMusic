@@ -19,6 +19,7 @@ RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
         return;
     }
     jMIDPrepare = jniEnv->GetMethodID(jclz, "onCallPrepared", "()V");
+    jMIDLoad = jniEnv->GetMethodID(jclz, "onResourceLoaded", "(Z)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -36,6 +37,22 @@ void RayCallJava::onCallPrepared(int type) {
             return;
         }
         jniEnv->CallVoidMethod(jobj, jMIDPrepare);
+        javaVM->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onLoad(int type, bool isLoading) {
+    if (type == MAIN_THEAD) {
+        jniEnv->CallVoidMethod(jobj, jMIDLoad, isLoading);
+    } else if (type == CHILD_THEAD) {
+        JNIEnv *jniEnv;
+        if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGE("get child thread jniEnv error!");
+            }
+            return;
+        }
+        jniEnv->CallVoidMethod(jobj, jMIDLoad, isLoading);
         javaVM->DetachCurrentThread();
     }
 }

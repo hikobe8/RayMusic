@@ -4,11 +4,12 @@
 
 #include "RayAudio.h"
 
-RayAudio::RayAudio(RayPlayStatus *playStatus, int sample_rate) {
+RayAudio::RayAudio(RayCallJava* callJava, RayPlayStatus *playStatus, int sample_rate) {
+    this->callJava = callJava;
     this->playStatus = playStatus;
     this->sample_rate = sample_rate;
     this->queuePacket = new RayQueue(playStatus);
-    buffer = (uint8_t *) (av_malloc(44100 * 2 * 2));
+    buffer = (uint8_t *) (av_malloc(sample_rate * 2 * 2));
 }
 
 RayAudio::~RayAudio() {
@@ -29,6 +30,21 @@ void RayAudio::play() {
 
 int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
+        if (queuePacket->getSize() == 0) {
+            //正在加载
+            if (!playStatus->isLoading) {
+                playStatus->isLoading = true;
+                callJava->onLoad(CHILD_THEAD, true);
+            }
+            continue;
+        } else {
+            //加载完成
+            if (playStatus->isLoading) {
+                playStatus->isLoading = false;
+                callJava->onLoad(CHILD_THEAD, false);
+            }
+        }
+
         avPacket = av_packet_alloc();
         if (queuePacket->getPacket(avPacket) != 0) {
             av_packet_free(&avPacket);
@@ -81,7 +97,6 @@ int RayAudio::resampleAudio() {
 
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-            LOGE("DataSize = %d", data_size);
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -207,4 +222,22 @@ int RayAudio::getSampleRateForOpenSLES(int sample_rate) {
             break;
     }
     return rate;
+}
+
+void RayAudio::pause() {
+    if (pcmPlayerPlay != NULL) {
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PAUSED);
+    }
+}
+
+void RayAudio::resume() {
+    if (pcmPlayerPlay != NULL) {
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
+    }
+}
+
+void RayAudio::stop() {
+    if (pcmPlayerPlay != NULL) {
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_STOPPED);
+    }
 }

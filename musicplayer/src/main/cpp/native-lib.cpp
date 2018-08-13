@@ -46,4 +46,28 @@ Java_com_ray_player_RayPlayer_native_1start(JNIEnv *env, jobject instance) {
         rayFFmpeg->start();
     }
 
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1pause(JNIEnv *env, jobject instance) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->pause();
+    }
+
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1resume(JNIEnv *env, jobject instance) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->resume();
+    }
+
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->stop();
+    }
+
 }

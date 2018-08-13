@@ -18,6 +18,7 @@ public:
     JNIEnv *jniEnv = NULL;
     jobject jobj;
     jmethodID jMIDPrepare;
+    jmethodID jMIDLoad;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -25,6 +26,8 @@ public:
     ~RayCallJava();
 
     void onCallPrepared(int type);
+
+    void onLoad(int type, bool isLoading);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H

@@ -10,8 +10,26 @@
 
     <Button
         android:layout_width="match_parent"
-        android:text="Start"
+        android:text="play"
         android:onClick="start"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="pause"
+        android:onClick="pause"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="resume"
+        android:onClick="resume"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:text="stop"
+        android:onClick="stop"
         android:layout_height="wrap_content" />
 
 </LinearLayout>

@@ -6,4 +6,5 @@
 
 RayPlayStatus::RayPlayStatus() {
     this->exit = false;
+    this->isLoading = true;
 }

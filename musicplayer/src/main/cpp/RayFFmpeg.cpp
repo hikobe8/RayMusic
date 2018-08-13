@@ -45,7 +45,7 @@ void RayFFmpeg::decodeByFFmepg() {
     for (int i = 0; i < avFormatContext->nb_streams; i++) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (rayAudio == NULL) {
-                rayAudio = new RayAudio(playStatus, avFormatContext->streams[i]->codecpar->sample_rate);
+                rayAudio = new RayAudio(callJava, playStatus, avFormatContext->streams[i]->codecpar->sample_rate);
                 rayAudio->streamIndex = i;
                 rayAudio->codecpar = avFormatContext->streams[i]->codecpar;
             }
@@ -102,9 +102,6 @@ void RayFFmpeg::start() {
         if (av_read_frame(avFormatContext, avPacket) == 0) {
             if (avPacket->stream_index == rayAudio->streamIndex) {
                 count ++;
-                if (LOG_DEBUG) {
-                    LOGE("解码第 %d 帧", count);
-                }
                 rayAudio->queuePacket->putPacket(avPacket);
             } else{
                 av_packet_free(&avPacket);
@@ -125,8 +122,23 @@ void RayFFmpeg::start() {
             }
         }
     }
-    if (LOG_DEBUG) {
-        LOGE("解码完成!");
-    }
 
+}
+
+void RayFFmpeg::pause() {
+    if (rayAudio != NULL) {
+        rayAudio->pause();
+    }
+}
+
+void RayFFmpeg::resume() {
+    if (rayAudio != NULL) {
+        rayAudio->resume();
+    }
+}
+
+void RayFFmpeg::stop() {
+    if (rayAudio != NULL) {
+        rayAudio->stop();
+    }
 }

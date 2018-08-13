@@ -2,6 +2,8 @@ package com.ray.player;
 
 import android.text.TextUtils;
 
+import com.ray.listener.OnLoadListener;
+import com.ray.listener.OnPauseResumeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 
@@ -26,9 +28,19 @@ public class RayPlayer {
 
     private String mSource;
     private PlayerPrepareListener mPlayerPrepareListener;
+    private OnLoadListener mOnLoadListener;
+    private OnPauseResumeListener mOnPauseResumeListener;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
+    }
+
+    public void setOnLoadListener(OnLoadListener onLoadListener) {
+        mOnLoadListener = onLoadListener;
+    }
+
+    public void setOnPauseResumeListener(OnPauseResumeListener onPauseResumeListener) {
+        mOnPauseResumeListener = onPauseResumeListener;
     }
 
     public void setSource(String source) {
@@ -40,6 +52,7 @@ public class RayPlayer {
             MyLog.e("play source can't be empty!");
             return;
         }
+        onResourceLoaded(true);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -51,6 +64,12 @@ public class RayPlayer {
     public void onCallPrepared() {
         if (mPlayerPrepareListener != null)
             mPlayerPrepareListener.onPrepared();
+    }
+
+    public void onResourceLoaded (boolean isLoading) {
+        if (mOnLoadListener != null) {
+            mOnLoadListener.onLoad(isLoading);
+        }
     }
 
     public void start() {
@@ -66,8 +85,35 @@ public class RayPlayer {
         }).start();
     }
 
+    public void pause() {
+        if (mOnPauseResumeListener != null) {
+            mOnPauseResumeListener.onPause();
+        }
+        native_pause();
+    }
+
+    public void resume() {
+        if (mOnPauseResumeListener != null) {
+            mOnPauseResumeListener.onResume();
+        }
+        native_resume();
+    }
+
+    public void stop() {
+        if (mOnPauseResumeListener != null) {
+            mOnPauseResumeListener.onStoped();
+        }
+        native_stop();
+    }
+
     private native void native_prepare(String source);
 
     private native void native_start();
+
+    private native void native_pause();
+
+    private native void native_resume();
+
+    private native void native_stop();
 
 }

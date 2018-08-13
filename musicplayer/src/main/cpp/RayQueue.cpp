@@ -13,9 +13,6 @@ RayQueue::RayQueue(RayPlayStatus* playStatus) {
 void RayQueue::putPacket(AVPacket *packet) {
     pthread_mutex_lock(&mutexPacket);
     queuePacket.push(packet);
-    if (LOG_DEBUG) {
-        LOGD("enqueue an AVPacket, size = %d", queuePacket.size());
-    }
     pthread_cond_signal(&condPacket);
     pthread_mutex_unlock(&mutexPacket);
 }
@@ -31,10 +28,6 @@ int RayQueue::getPacket(AVPacket *packet) {
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
-            if(LOG_DEBUG)
-            {
-                LOGD("从队列里面取出一个AVPacket，还剩下 %d 个", queuePacket.size());
-            }
             break;
         } else{
             pthread_cond_wait(&condPacket, &mutexPacket);

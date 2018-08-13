@@ -6,6 +6,7 @@
 #define RAYMUSIC_RAYAUDIO_H
 
 #include "RayQueue.h"
+#include "RayCallJava.h"
 
 extern "C"
 {
@@ -17,6 +18,7 @@ extern "C"
 
 class RayAudio {
 public:
+    RayCallJava* callJava;
     int streamIndex = -1;
     AVCodecParameters *codecpar = NULL;
     AVCodecContext *avCodecContext = NULL;
@@ -41,11 +43,17 @@ public:
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
-    RayAudio(RayPlayStatus *playStatus, int sample_rate);
+    RayAudio(RayCallJava* callJava, RayPlayStatus *playStatus, int sample_rate);
 
     ~RayAudio();
 
     void play();
+
+    void pause();
+
+    void resume();
+
+    void stop();
 
     int resampleAudio();
 
