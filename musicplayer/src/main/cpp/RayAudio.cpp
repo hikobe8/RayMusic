@@ -15,6 +15,7 @@ RayAudio::~RayAudio() {
 }
 
 void *resampleRunnable(void *data) {
+    //!!!fatal error :   RayAudio *audio = (RayAudio *) (&data);
     RayAudio *audio = (RayAudio *) (&data);
     audio->resampleAudio();
     pthread_exit(&audio->play_thread);

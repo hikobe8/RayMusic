@@ -33,7 +33,7 @@ int RayQueue::getPacket(AVPacket *packet) {
             avPacket = NULL;
             if(LOG_DEBUG)
             {
-                LOGD("从队列里面取出一个AVpacket，还剩下 %d 个", queuePacket.size());
+                LOGD("从队列里面取出一个AVPacket，还剩下 %ld 个", queuePacket.size());
             }
             break;
         } else{
@@ -49,8 +49,8 @@ RayQueue::~RayQueue() {
     pthread_cond_destroy(&condPacket);
 }
 
-int RayQueue::getSize() {
-    int size = 0;
+long RayQueue::getSize() {
+    long size = 0;
     pthread_mutex_lock(&mutexPacket);
     size = queuePacket.size();
     pthread_mutex_unlock(&mutexPacket);

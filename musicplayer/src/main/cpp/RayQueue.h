@@ -27,7 +27,8 @@ public:
     ~RayQueue();
     void putPacket(AVPacket * packet);
     int getPacket(AVPacket * packet);
-    int getSize();
+
+    long getSize();
 
 };
 
