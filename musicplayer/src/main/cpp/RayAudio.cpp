@@ -16,7 +16,7 @@ RayAudio::~RayAudio() {
 
 void *resampleRunnable(void *data) {
     //!!!fatal error :   RayAudio *audio = (RayAudio *) (&data);
-    RayAudio *audio = (RayAudio *) (&data);
+    RayAudio *audio = (RayAudio *) (data);
     audio->resampleAudio();
     pthread_exit(&audio->play_thread);
 }
@@ -25,6 +25,8 @@ void *resampleRunnable(void *data) {
 void RayAudio::play() {
     pthread_create(&play_thread, NULL, resampleRunnable, this);
 }
+
+FILE *outFile = fopen("/storage/emulated/0/mymusic.pcm", "w");
 
 int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
@@ -81,6 +83,7 @@ int RayAudio::resampleAudio() {
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
             LOGE("DataSize = %d", data_size);
+            fwrite(buffer, 1, data_size, outFile);
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -98,5 +101,6 @@ int RayAudio::resampleAudio() {
             continue;
         }
     }
+    fclose(outFile);
     return data_size;
 }

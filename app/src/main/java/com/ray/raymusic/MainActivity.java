@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void start(View view) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int permission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+            int permission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             if (permission == PackageManager.PERMISSION_GRANTED) {
                 final RayPlayer player = new RayPlayer();
                 player.setPlayerPrepareListener(new PlayerPrepareListener() {
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 player.prepare();
             } else {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             }
         } else {
             final RayPlayer player = new RayPlayer();
