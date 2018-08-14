@@ -97,6 +97,13 @@ int RayAudio::resampleAudio() {
 
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+
+            now_time = avFrame->pts * av_q2d(time_base);
+            if (now_time < clock) {
+                now_time = clock;
+            }
+            clock = now_time;
+
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -122,7 +129,14 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) (pContext);
     int dataSize = rayAudio->resampleAudio();
-    (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, dataSize);
+    rayAudio->clock += dataSize/(double)(rayAudio->sample_rate*2*2);
+    if (rayAudio->callJava != NULL) {
+        if(rayAudio->clock - rayAudio->lastTime > 0.1) {
+            rayAudio->lastTime = rayAudio->clock;
+            rayAudio->callJava->onTimeChanged(CHILD_THEAD, rayAudio->clock, rayAudio->duration);
+        }
+    }
+    (*caller)->Enqueue(caller, rayAudio->buffer, dataSize);
 }
 
 void RayAudio::initOpenSLES() {

@@ -48,6 +48,8 @@ void RayFFmpeg::decodeByFFmepg() {
                 rayAudio = new RayAudio(callJava, playStatus, avFormatContext->streams[i]->codecpar->sample_rate);
                 rayAudio->streamIndex = i;
                 rayAudio->codecpar = avFormatContext->streams[i]->codecpar;
+                rayAudio->duration = avFormatContext->duration / AV_TIME_BASE ;
+                rayAudio->time_base = avFormatContext->streams[i]->time_base;
             }
         }
     }

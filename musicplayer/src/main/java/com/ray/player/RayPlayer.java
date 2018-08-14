@@ -2,8 +2,10 @@ package com.ray.player;
 
 import android.text.TextUtils;
 
+import com.ray.entity.TimeInfo;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
+import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 
@@ -30,6 +32,8 @@ public class RayPlayer {
     private PlayerPrepareListener mPlayerPrepareListener;
     private OnLoadListener mOnLoadListener;
     private OnPauseResumeListener mOnPauseResumeListener;
+    private PlayTimeListener mPlayTimeListener;
+    private static TimeInfo sTimeInfo;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -41,6 +45,10 @@ public class RayPlayer {
 
     public void setOnPauseResumeListener(OnPauseResumeListener onPauseResumeListener) {
         mOnPauseResumeListener = onPauseResumeListener;
+    }
+
+    public void setPlayTimeListener(PlayTimeListener playTimeListener) {
+        mPlayTimeListener = playTimeListener;
     }
 
     public void setSource(String source) {
@@ -69,6 +77,17 @@ public class RayPlayer {
     public void onResourceLoaded (boolean isLoading) {
         if (mOnLoadListener != null) {
             mOnLoadListener.onLoad(isLoading);
+        }
+    }
+
+    public void onPlayTimeChanged(int nowTime, int duration) {
+        if (mPlayTimeListener != null) {
+            if (sTimeInfo == null) {
+                sTimeInfo = new TimeInfo(nowTime, duration);
+            }
+            sTimeInfo.nowTime = nowTime;
+            sTimeInfo.duration = duration;
+            mPlayTimeListener.onPlayTimeChanged(sTimeInfo);
         }
     }
 

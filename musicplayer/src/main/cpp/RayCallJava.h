@@ -10,6 +10,7 @@
 
 #include "jni.h"
 #include <linux/stddef.h>
+#include "AndroidLog.h"
 
 class RayCallJava {
 
@@ -19,6 +20,7 @@ public:
     jobject jobj;
     jmethodID jMIDPrepare;
     jmethodID jMIDLoad;
+    jmethodID jMIDTime;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -28,6 +30,8 @@ public:
     void onCallPrepared(int type);
 
     void onLoad(int type, bool isLoading);
+
+    void onTimeChanged(int type, int now_time, int duration);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H
