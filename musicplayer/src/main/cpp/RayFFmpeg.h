@@ -11,6 +11,7 @@
 #include "RayPlayStatus.h"
 extern "C"
 {
+#include <libavutil/time.h>
 #include "libavformat/avformat.h"
 };
 
@@ -23,6 +24,8 @@ public:
     AVFormatContext *avFormatContext;
     RayAudio *rayAudio = NULL;
     RayPlayStatus* playStatus;
+    pthread_mutex_t init_mutex;
+    bool exit;
 
 public:
     RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const char *url);
@@ -40,6 +43,8 @@ public:
     void resume();
 
     void stop();
+
+    void release();
 };
 
 

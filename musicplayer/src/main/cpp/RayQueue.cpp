@@ -38,6 +38,7 @@ int RayQueue::getPacket(AVPacket *packet) {
 }
 
 RayQueue::~RayQueue() {
+    clearAVPacket();
     pthread_mutex_destroy(&mutexPacket);
     pthread_cond_destroy(&condPacket);
 }
@@ -48,4 +49,17 @@ long RayQueue::getSize() {
     size = queuePacket.size();
     pthread_mutex_unlock(&mutexPacket);
     return size;
+}
+
+void RayQueue::clearAVPacket() {
+    pthread_cond_signal(&condPacket);
+    pthread_mutex_lock(&mutexPacket);
+    while (!queuePacket.empty()) {
+        AVPacket * avPacket = queuePacket.front();
+        queuePacket.pop();
+        av_packet_free(&avPacket);
+        av_free(avPacket);
+        avPacket = NULL;
+    }
+    pthread_mutex_unlock(&mutexPacket);
 }

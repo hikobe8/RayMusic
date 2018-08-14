@@ -29,7 +29,7 @@ public:
     int getPacket(AVPacket * packet);
 
     long getSize();
-
+    void clearAVPacket();
 };
 
 

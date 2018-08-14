@@ -22,7 +22,7 @@ public:
     int streamIndex = -1;
     AVCodecParameters *codecpar = NULL;
     AVCodecContext *avCodecContext = NULL;
-    RayQueue *queuePacket = NULL;
+    RayQueue *packetQueue = NULL;
     pthread_t play_thread;
     RayPlayStatus *playStatus = NULL;
     AVPacket * avPacket = NULL;
@@ -42,7 +42,7 @@ public:
     SLObjectItf outputObjectItf = NULL;
     SLEnvironmentalReverbItf outputMixEnvironmentalReverb = NULL;
     SLEnvironmentalReverbSettings reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
-    SLObjectItf playerObject = NULL;
+    SLObjectItf pcmPlayerObject = NULL;
     SLPlayItf pcmPlayerPlay = NULL;
     SLVolumeItf pcmVolumeItf = NULL;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
@@ -59,6 +59,8 @@ public:
     void resume();
 
     void stop();
+
+    void release();
 
     int resampleAudio();
 

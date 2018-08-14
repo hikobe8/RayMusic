@@ -28,7 +28,7 @@ import java.lang.ref.WeakReference;
 public class MainActivity extends AppCompatActivity {
 
 
-    private static final boolean TEST_NET_SWITCH = false;
+    private static final boolean TEST_NET_SWITCH = true;
     private static final int KEY_UPDATE_PLAY_TIME = 1;
 
     private static final String TEST_FILE = "output.mp3";

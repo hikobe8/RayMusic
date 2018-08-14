@@ -67,7 +67,7 @@ JNIEXPORT void JNICALL
 Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
 
     if (rayFFmpeg != NULL) {
-        rayFFmpeg->stop();
+        rayFFmpeg->release();
     }
 
 }

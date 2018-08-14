@@ -8,7 +8,7 @@ RayAudio::RayAudio(RayCallJava* callJava, RayPlayStatus *playStatus, int sample_
     this->callJava = callJava;
     this->playStatus = playStatus;
     this->sample_rate = sample_rate;
-    this->queuePacket = new RayQueue(playStatus);
+    this->packetQueue = new RayQueue(playStatus);
     buffer = (uint8_t *) (av_malloc(sample_rate * 2 * 2));
 }
 
@@ -30,7 +30,7 @@ void RayAudio::play() {
 
 int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
-        if (queuePacket->getSize() == 0) {
+        if (packetQueue->getSize() == 0) {
             //正在加载
             if (!playStatus->isLoading) {
                 playStatus->isLoading = true;
@@ -46,7 +46,7 @@ int RayAudio::resampleAudio() {
         }
 
         avPacket = av_packet_alloc();
-        if (queuePacket->getPacket(avPacket) != 0) {
+        if (packetQueue->getPacket(avPacket) != 0) {
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -173,19 +173,19 @@ void RayAudio::initOpenSLES() {
     SLDataSink dataSink = {&outputMix, NULL};
     const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME};
     const SLboolean reqs[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-    (*slEngineItf)->CreateAudioPlayer(slEngineItf, &playerObject, &dataSource, &dataSink, 3, ids,
+    (*slEngineItf)->CreateAudioPlayer(slEngineItf, &pcmPlayerObject, &dataSource, &dataSink, 3, ids,
                                       reqs);
     //初始化播放器
-    (*playerObject)->Realize(playerObject, SL_BOOLEAN_FALSE);
+    (*pcmPlayerObject)->Realize(pcmPlayerObject, SL_BOOLEAN_FALSE);
     //得到接口
-    (*playerObject)->GetInterface(playerObject, SL_IID_PLAY, &pcmPlayerPlay);
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_PLAY, &pcmPlayerPlay);
 
     //4创建缓冲区和回调函数
-    (*playerObject)->GetInterface(playerObject, SL_IID_BUFFERQUEUE, &pcmBufferQueue);
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_BUFFERQUEUE, &pcmBufferQueue);
     //缓冲接口回调
     (*pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
     //获取音量接口
-    (*playerObject)->GetInterface(playerObject, SL_IID_VOLUME, &pcmVolumeItf);
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_VOLUME, &pcmVolumeItf);
     //设置播放状态
     (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
 
@@ -254,4 +254,52 @@ void RayAudio::stop() {
     if (pcmPlayerPlay != NULL) {
         (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_STOPPED);
     }
+}
+
+void RayAudio::release() {
+    stop();
+    //删除AVPacket 队列 会调用RayQueue的析构函数
+    if (packetQueue != NULL) {
+        delete(packetQueue);
+        packetQueue = NULL;
+    }
+
+    if (pcmPlayerObject != NULL) {
+        (*pcmPlayerObject)->Destroy(pcmPlayerObject);
+        pcmPlayerObject = NULL;
+        pcmPlayerPlay = NULL;
+        pcmBufferQueue = NULL;
+    }
+
+    if (outputObjectItf != NULL) {
+        (*outputObjectItf)->Destroy(outputObjectItf);
+        outputObjectItf = NULL;
+        outputMixEnvironmentalReverb = NULL;
+    }
+
+    if (slEngineObjectItf != NULL) {
+        (*slEngineObjectItf)->Destroy(slEngineObjectItf);
+        slEngineObjectItf = NULL;
+        slEngineItf = NULL;
+    }
+
+    if (buffer != NULL) {
+        free(buffer);
+        buffer = NULL;
+    }
+
+    if (avCodecContext != NULL) {
+        avcodec_close(avCodecContext);
+        avcodec_free_context(&avCodecContext);
+        avCodecContext = NULL;
+    }
+
+    if (playStatus != NULL) {
+        playStatus = NULL;
+    }
+
+    if (callJava != NULL) {
+        callJava = NULL;
+    }
+
 }
