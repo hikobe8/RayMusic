@@ -155,6 +155,10 @@ void RayFFmpeg::start() {
             }
         }
     }
+    exit = true;
+    if (LOG_DEBUG) {
+        LOGD("解码完成");
+    }
 
 }
 

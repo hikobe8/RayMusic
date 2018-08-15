@@ -32,10 +32,11 @@ Java_com_ray_player_RayPlayer_native_1prepare(JNIEnv *env, jobject instance, jst
         if (rayCallJava == NULL) {
             rayCallJava = new RayCallJava(javaVM, env, instance);
         }
+        rayCallJava->onLoad(MAIN_THEAD, true);
         playStatus = new RayPlayStatus();
         rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, source);
+        rayFFmpeg->prepare();
     }
-    rayFFmpeg->prepare();
 
 //    env->ReleaseStringUTFChars(source_, source);
 }extern "C"
@@ -68,6 +69,21 @@ Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
 
     if (rayFFmpeg != NULL) {
         rayFFmpeg->release();
+        delete(rayFFmpeg);
+        rayFFmpeg = NULL;
+
+        if (rayCallJava != NULL) {
+            delete(rayCallJava);
+            rayCallJava = NULL;
+        }
+
+        if (playStatus != NULL) {
+            delete(playStatus);
+            playStatus = NULL;
+        }
+
     }
+
+
 
 }

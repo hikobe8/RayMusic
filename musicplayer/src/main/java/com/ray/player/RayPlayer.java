@@ -60,7 +60,6 @@ public class RayPlayer {
             MyLog.e("play source can't be empty!");
             return;
         }
-        onResourceLoaded(true);
         new Thread(new Runnable() {
             @Override
             public void run() {
