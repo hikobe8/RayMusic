@@ -20,6 +20,7 @@ RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
     jMIDPrepare = jniEnv->GetMethodID(jclz, "onCallPrepared", "()V");
     jMIDLoad = jniEnv->GetMethodID(jclz, "onResourceLoaded", "(Z)V");
     jMIDTime = jniEnv->GetMethodID(jclz, "onPlayTimeChanged", "(II)V");
+    jMIDCallError = jniEnv->GetMethodID(jclz, "onErrorCall", "(ILjava/lang/String;)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -69,6 +70,26 @@ void RayCallJava::onTimeChanged(int type, int now_time, int duration) {
             return;
         }
         jniEnv->CallVoidMethod(jobj, jMIDTime, now_time, duration);
+        javaVM->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallError(int type, int code, const char *msg) {
+    if (type == MAIN_THEAD) {
+        jstring msg_ = jniEnv->NewStringUTF(msg);
+        jniEnv->CallVoidMethod(jobj, jMIDCallError, code, msg_);
+        jniEnv->DeleteLocalRef(msg_);
+    } else if (type == CHILD_THEAD) {
+        JNIEnv *jniEnv;
+        if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGE("get child thread jniEnv error!");
+            }
+            return;
+        }
+        jstring msg_ = jniEnv->NewStringUTF(msg);
+        jniEnv->CallVoidMethod(jobj, jMIDCallError, code, msg_);
+        jniEnv->DeleteLocalRef(msg_);
         javaVM->DetachCurrentThread();
     }
 }

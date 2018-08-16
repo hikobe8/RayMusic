@@ -3,6 +3,7 @@ package com.ray.player;
 import android.text.TextUtils;
 
 import com.ray.entity.TimeInfo;
+import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
 import com.ray.listener.PlayTimeListener;
@@ -33,6 +34,8 @@ public class RayPlayer {
     private OnLoadListener mOnLoadListener;
     private OnPauseResumeListener mOnPauseResumeListener;
     private PlayTimeListener mPlayTimeListener;
+    private OnErrorListener mOnErrorListener;
+
     private static TimeInfo sTimeInfo;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
@@ -49,6 +52,10 @@ public class RayPlayer {
 
     public void setPlayTimeListener(PlayTimeListener playTimeListener) {
         mPlayTimeListener = playTimeListener;
+    }
+
+    public void setOnErrorListener(OnErrorListener onErrorListener) {
+        mOnErrorListener = onErrorListener;
     }
 
     public void setSource(String source) {
@@ -87,6 +94,12 @@ public class RayPlayer {
             sTimeInfo.nowTime = nowTime;
             sTimeInfo.duration = duration;
             mPlayTimeListener.onPlayTimeChanged(sTimeInfo);
+        }
+    }
+
+    public void onErrorCall(int code, String msg){
+        if (mOnErrorListener != null) {
+            mOnErrorListener.onError(code, msg);
         }
     }
 

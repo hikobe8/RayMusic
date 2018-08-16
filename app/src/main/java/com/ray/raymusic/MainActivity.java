@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.ray.TimeUtil;
 import com.ray.entity.TimeInfo;
+import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
 import com.ray.listener.PlayTimeListener;
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
             super.handleMessage(msg);
             MainActivity mainActivity = mContextWeakReference.get();
             if (mainActivity != null && msg.what == KEY_UPDATE_PLAY_TIME) {
-                TimeInfo timeInfo= (TimeInfo) msg.obj;
+                TimeInfo timeInfo = (TimeInfo) msg.obj;
                 String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
                 String duration = TimeUtil.getMMssTime(timeInfo.duration);
                 mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
@@ -119,6 +120,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPlayTimeChanged(TimeInfo timeInfo) {
                 mMHandler.obtainMessage(KEY_UPDATE_PLAY_TIME, timeInfo).sendToTarget();
+            }
+        });
+        mPlayer.setOnErrorListener(new OnErrorListener() {
+            @Override
+            public void onError(int code, String msg) {
+                MyLog.e("error ! code : " + code + ", msg : " + msg);
             }
         });
         if (TEST_NET_SWITCH) {

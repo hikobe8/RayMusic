@@ -12,6 +12,7 @@ JavaVM *javaVM = NULL;
 RayCallJava *rayCallJava = NULL;
 RayFFmpeg *rayFFmpeg = NULL;
 RayPlayStatus* playStatus = NULL;
+bool nativeStopping = false;
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reversed) {
     javaVM = vm;
@@ -67,6 +68,11 @@ Java_com_ray_player_RayPlayer_native_1resume(JNIEnv *env, jobject instance) {
 JNIEXPORT void JNICALL
 Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
 
+    if (nativeStopping) {
+        return;
+    }
+    nativeStopping = true;
+
     if (rayFFmpeg != NULL) {
         rayFFmpeg->release();
         delete(rayFFmpeg);
@@ -84,6 +90,7 @@ Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
 
     }
 
+    nativeStopping = false;
 
 
 }

@@ -21,6 +21,7 @@ public:
     jmethodID jMIDPrepare;
     jmethodID jMIDLoad;
     jmethodID jMIDTime;
+    jmethodID jMIDCallError;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -32,6 +33,8 @@ public:
     void onLoad(int type, bool isLoading);
 
     void onTimeChanged(int type, int now_time, int duration);
+
+    void onCallError(int type, int code, const char *msg);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H

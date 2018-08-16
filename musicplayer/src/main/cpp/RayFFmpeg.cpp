@@ -46,6 +46,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't open url : %s", url);
         }
+        callJava->onCallError(CHILD_THEAD, 1001, "can't open url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -54,6 +55,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't find stream from url : %s", url);
         }
+        callJava->onCallError(CHILD_THEAD, 1002, "can't find stream from url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -73,6 +75,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGW("no audio stream founded : %s!", url);
         }
+        callJava->onCallError(CHILD_THEAD, 1003, "no audio stream founded");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -82,6 +85,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't find audio decoder!");
         }
+        callJava->onCallError(CHILD_THEAD, 1004, "can't find audio decoder");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -89,8 +93,9 @@ void RayFFmpeg::decodeByFFmepg() {
     rayAudio->avCodecContext = avcodec_alloc_context3(avCodec);
     if (rayAudio->avCodecContext == NULL) {
         if (LOG_DEBUG) {
-            LOGE("can't alloc new decoderContext !");
+            LOGE("can't alloc new decoderContext!");
         }
+        callJava->onCallError(CHILD_THEAD, 1005, "can't alloc new decoderContext");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -99,6 +104,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't fill decoderContext!");
         }
+        callJava->onCallError(CHILD_THEAD, 1006, "can't fill decoderContext");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -107,6 +113,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't open audio streams: %s!", url);
         }
+        callJava->onCallError(CHILD_THEAD, 1007, "can't open audio streams");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -126,6 +133,7 @@ void RayFFmpeg::start() {
         if (LOG_DEBUG) {
             LOGE("audio not initialized!");
         }
+        callJava->onCallError(CHILD_THEAD, 1008, "audio not initialized!");
         return;
     }
     rayAudio->play();
