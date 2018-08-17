@@ -43,7 +43,7 @@ RayQueue::~RayQueue() {
     pthread_cond_destroy(&condPacket);
 }
 
-long RayQueue::getSize() {
+long RayQueue::getQueueSize() {
     long size = 0;
     pthread_mutex_lock(&mutexPacket);
     size = queuePacket.size();

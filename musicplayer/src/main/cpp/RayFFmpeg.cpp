@@ -48,7 +48,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't open url : %s", url);
         }
-        callJava->onCallError(CHILD_THEAD, 1001, "can't open url");
+        callJava->onCallError(CHILD_THREAD, 1001, "can't open url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -57,7 +57,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't find stream from url : %s", url);
         }
-        callJava->onCallError(CHILD_THEAD, 1002, "can't find stream from url");
+        callJava->onCallError(CHILD_THREAD, 1002, "can't find stream from url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -78,7 +78,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGW("no audio stream founded : %s!", url);
         }
-        callJava->onCallError(CHILD_THEAD, 1003, "no audio stream founded");
+        callJava->onCallError(CHILD_THREAD, 1003, "no audio stream founded");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -88,7 +88,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't find audio decoder!");
         }
-        callJava->onCallError(CHILD_THEAD, 1004, "can't find audio decoder");
+        callJava->onCallError(CHILD_THREAD, 1004, "can't find audio decoder");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -98,7 +98,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't alloc new decoderContext!");
         }
-        callJava->onCallError(CHILD_THEAD, 1005, "can't alloc new decoderContext");
+        callJava->onCallError(CHILD_THREAD, 1005, "can't alloc new decoderContext");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -107,7 +107,7 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't fill decoderContext!");
         }
-        callJava->onCallError(CHILD_THEAD, 1006, "can't fill decoderContext");
+        callJava->onCallError(CHILD_THREAD, 1006, "can't fill decoderContext");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -116,14 +116,14 @@ void RayFFmpeg::decodeByFFmepg() {
         if (LOG_DEBUG) {
             LOGE("can't open audio streams: %s!", url);
         }
-        callJava->onCallError(CHILD_THEAD, 1007, "can't open audio streams");
+        callJava->onCallError(CHILD_THREAD, 1007, "can't open audio streams");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
     }
     if (playStatus != NULL) {
         if(callJava != NULL && !playStatus->exit) {
-            callJava->onCallPrepared(CHILD_THEAD);
+            callJava->onCallPrepared(CHILD_THREAD);
         } else{
             exit = true;
         }
@@ -133,21 +133,17 @@ void RayFFmpeg::decodeByFFmepg() {
 
 void RayFFmpeg::start() {
     if (rayAudio == NULL) {
-        if (LOG_DEBUG) {
-            LOGE("audio not initialized!");
-        }
-        callJava->onCallError(CHILD_THEAD, 1008, "audio not initialized!");
+        callJava->onCallError(CHILD_THREAD, 1003, "no audio stream founded");
         return;
     }
     rayAudio->play();
-    int count = 0;
     while (playStatus != NULL && !playStatus->exit) {
 
         if (playStatus->doSeek) {
             continue;
         }
 
-        if (rayAudio->packetQueue->getSize() > 40){
+        if (rayAudio->packetQueue->getQueueSize() > 40){
             continue;
         }
 
@@ -157,7 +153,6 @@ void RayFFmpeg::start() {
         pthread_mutex_unlock(&seek_mutex);
         if (retCode == 0) {
             if (avPacket->stream_index == rayAudio->streamIndex) {
-                count ++;
                 rayAudio->packetQueue->putPacket(avPacket);
             } else{
                 av_packet_free(&avPacket);
@@ -169,7 +164,7 @@ void RayFFmpeg::start() {
             av_free(avPacket);
             avPacket = NULL;
             while (playStatus != NULL && !playStatus->exit) {
-                if (rayAudio->packetQueue->getSize() > 0) {
+                if (rayAudio->packetQueue->getQueueSize() > 0) {
                     continue;
                 } else{
                     playStatus->exit = true;
@@ -177,6 +172,9 @@ void RayFFmpeg::start() {
                 }
             }
         }
+    }
+    if (callJava != NULL) {
+        callJava->onCallComplete(CHILD_THREAD);
     }
     exit = true;
     if (LOG_DEBUG) {
@@ -206,13 +204,6 @@ void RayFFmpeg::stop() {
 void RayFFmpeg::release() {
     if (LOG_DEBUG) {
         LOGD("开始释放ffmpeg");
-    }
-    if (playStatus != NULL && playStatus->exit) {
-        return;
-    }
-    if(LOG_DEBUG)
-    {
-        LOGE("开始释放Ffmpe2");
     }
     playStatus->exit = true;
     pthread_mutex_lock(&init_mutex);
@@ -247,6 +238,7 @@ void RayFFmpeg::release() {
     {
         LOGE("释放 封装格式上下文");
     }
+
     if(avFormatContext != NULL)
     {
         avformat_close_input(&avFormatContext);

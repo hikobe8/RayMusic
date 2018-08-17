@@ -3,6 +3,7 @@ package com.ray.player;
 import android.text.TextUtils;
 
 import com.ray.entity.TimeInfo;
+import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
@@ -35,6 +36,7 @@ public class RayPlayer {
     private OnPauseResumeListener mOnPauseResumeListener;
     private PlayTimeListener mPlayTimeListener;
     private OnErrorListener mOnErrorListener;
+    private OnCompleteListener mOnCompleteListener;
 
     private static TimeInfo sTimeInfo;
 
@@ -56,6 +58,10 @@ public class RayPlayer {
 
     public void setOnErrorListener(OnErrorListener onErrorListener) {
         mOnErrorListener = onErrorListener;
+    }
+
+    public void setOnCompleteListener(OnCompleteListener onCompleteListener) {
+        mOnCompleteListener = onCompleteListener;
     }
 
     public void setSource(String source) {
@@ -98,8 +104,16 @@ public class RayPlayer {
     }
 
     public void onErrorCall(int code, String msg){
+        stop();
         if (mOnErrorListener != null) {
             mOnErrorListener.onError(code, msg);
+        }
+    }
+
+    public void onCallComplete() {
+        stop();
+        if (mOnCompleteListener != null) {
+            mOnCompleteListener.onComplete();
         }
     }
 
@@ -131,10 +145,13 @@ public class RayPlayer {
     }
 
     public void stop() {
-        if (mOnPauseResumeListener != null) {
-            mOnPauseResumeListener.onStoped();
-        }
-        native_stop();
+        sTimeInfo = null;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                native_stop();
+            }
+        }).start();
     }
 
     public void seek(int seconds) {

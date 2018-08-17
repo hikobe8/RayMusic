@@ -28,7 +28,7 @@ public:
     void putPacket(AVPacket * packet);
     int getPacket(AVPacket * packet);
 
-    long getSize();
+    long getQueueSize();
     void clearAVPacket();
 };
 

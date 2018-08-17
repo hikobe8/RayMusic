@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.ray.TimeUtil;
 import com.ray.entity.TimeInfo;
+import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
@@ -53,13 +54,16 @@ public class MainActivity extends AppCompatActivity {
             if (mainActivity != null && msg.what == KEY_UPDATE_PLAY_TIME) {
                 TimeInfo timeInfo = (TimeInfo) msg.obj;
                 mainActivity.mSeekBar.setMax(timeInfo.duration);
-                mainActivity.mSeekBar.setProgress(timeInfo.nowTime);
+                if (!mainActivity.doSeek)
+                    mainActivity.mSeekBar.setProgress(timeInfo.nowTime);
                 String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
                 String duration = TimeUtil.getMMssTime(timeInfo.duration);
                 mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
             }
         }
     }
+
+    private boolean doSeek;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +81,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                doSeek = true;
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                doSeek = false;
             }
         });
     }
@@ -133,10 +137,6 @@ public class MainActivity extends AppCompatActivity {
                 MyLog.d("播放中...");
             }
 
-            @Override
-            public void onStoped() {
-                MyLog.d("停止播放");
-            }
         });
         mPlayer.setPlayTimeListener(new PlayTimeListener() {
             @Override
@@ -150,6 +150,13 @@ public class MainActivity extends AppCompatActivity {
                 MyLog.e("error ! code : " + code + ", msg : " + msg);
             }
         });
+        mPlayer.setOnCompleteListener(new OnCompleteListener() {
+            @Override
+            public void onComplete() {
+                MyLog.w("播放完成");
+            }
+        });
+
         if (TEST_NET_SWITCH) {
             mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
 //            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");

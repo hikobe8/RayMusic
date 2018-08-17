@@ -11,5 +11,4 @@ public interface OnPauseResumeListener {
 
     void onResume();
 
-    void onStoped();
 }

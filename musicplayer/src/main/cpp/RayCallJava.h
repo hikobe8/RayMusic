@@ -5,8 +5,8 @@
 #ifndef RAYMUSIC_RAYCALLJAVA_H
 #define RAYMUSIC_RAYCALLJAVA_H
 
-#define MAIN_THEAD 0
-#define CHILD_THEAD 1
+#define MAIN_THREAD 0
+#define CHILD_THREAD 1
 
 #include "jni.h"
 #include <linux/stddef.h>
@@ -22,6 +22,7 @@ public:
     jmethodID jMIDLoad;
     jmethodID jMIDTime;
     jmethodID jMIDCallError;
+    jmethodID jMIDCallComplete;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -35,6 +36,8 @@ public:
     void onTimeChanged(int type, int now_time, int duration);
 
     void onCallError(int type, int code, const char *msg);
+
+    void onCallComplete(int type);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H

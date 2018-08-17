@@ -13,6 +13,7 @@ RayCallJava *rayCallJava = NULL;
 RayFFmpeg *rayFFmpeg = NULL;
 RayPlayStatus* playStatus = NULL;
 bool nativeStopping = false;
+pthread_t startThread;
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reversed) {
     javaVM = vm;
@@ -24,6 +25,11 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reversed) {
     return JNI_VERSION_1_4;
 }
 
+void* startCallback(void* ctx) {
+    RayFFmpeg *fFmpeg = (RayFFmpeg *)(ctx);
+    fFmpeg->start();
+    pthread_exit(&startThread);
+}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -33,7 +39,7 @@ Java_com_ray_player_RayPlayer_native_1prepare(JNIEnv *env, jobject instance, jst
         if (rayCallJava == NULL) {
             rayCallJava = new RayCallJava(javaVM, env, instance);
         }
-        rayCallJava->onLoad(MAIN_THEAD, true);
+        rayCallJava->onLoad(MAIN_THREAD, true);
         playStatus = new RayPlayStatus();
         rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, source);
         rayFFmpeg->prepare();
@@ -45,7 +51,7 @@ JNIEXPORT void JNICALL
 Java_com_ray_player_RayPlayer_native_1start(JNIEnv *env, jobject instance) {
 
     if (rayFFmpeg != NULL) {
-        rayFFmpeg->start();
+        pthread_create(&startThread, NULL, startCallback, rayFFmpeg);
     }
 
 }extern "C"

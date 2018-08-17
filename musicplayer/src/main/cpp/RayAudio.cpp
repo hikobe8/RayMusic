@@ -30,18 +30,18 @@ void RayAudio::play() {
 
 int RayAudio::resampleAudio() {
     while (playStatus != NULL && !playStatus->exit) {
-        if (packetQueue->getSize() == 0) {
+        if (packetQueue->getQueueSize() == 0) {
             //正在加载
             if (!playStatus->isLoading) {
                 playStatus->isLoading = true;
-                callJava->onLoad(CHILD_THEAD, true);
+                callJava->onLoad(CHILD_THREAD, true);
             }
             continue;
         } else {
             //加载完成
             if (playStatus->isLoading) {
                 playStatus->isLoading = false;
-                callJava->onLoad(CHILD_THEAD, false);
+                callJava->onLoad(CHILD_THREAD, false);
             }
         }
 
@@ -133,7 +133,7 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
     if (rayAudio->callJava != NULL) {
         if(rayAudio->clock - rayAudio->lastTime > 0.1) {
             rayAudio->lastTime = rayAudio->clock;
-            rayAudio->callJava->onTimeChanged(CHILD_THEAD, rayAudio->clock, rayAudio->duration);
+            rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
         }
     }
     (*caller)->Enqueue(caller, rayAudio->buffer, dataSize);
