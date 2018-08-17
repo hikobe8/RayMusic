@@ -30,6 +30,12 @@
         android:onClick="stop"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:text="next"
+        android:onClick="next"
+        android:layout_height="wrap_content" />
+
     <RelativeLayout
         android:layout_margin="8dp"
         android:layout_width="match_parent"

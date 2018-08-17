@@ -178,6 +178,11 @@ public class MainActivity extends AppCompatActivity {
         mPlayer.stop();
     }
 
+    public void next(View view) {
+        mPlayer.playNext("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
+    }
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

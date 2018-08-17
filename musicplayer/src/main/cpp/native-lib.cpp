@@ -77,8 +77,11 @@ Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
     if (nativeStopping) {
         return;
     }
-    nativeStopping = true;
 
+    jclass jclz = env->GetObjectClass(instance);
+    jmethodID jmethodIDNext =  env->GetMethodID(jclz, "onCallNext", "()V");
+
+    nativeStopping = true;
     if (rayFFmpeg != NULL) {
         rayFFmpeg->release();
         delete(rayFFmpeg);
@@ -97,7 +100,7 @@ Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
     }
 
     nativeStopping = false;
-
+    env->CallVoidMethod(instance, jmethodIDNext);
 
 }extern "C"
 JNIEXPORT void JNICALL

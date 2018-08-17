@@ -39,6 +39,7 @@ public class RayPlayer {
     private OnCompleteListener mOnCompleteListener;
 
     private static TimeInfo sTimeInfo;
+    private static boolean sPlayNext;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -86,7 +87,7 @@ public class RayPlayer {
             mPlayerPrepareListener.onPrepared();
     }
 
-    public void onResourceLoaded (boolean isLoading) {
+    public void onResourceLoaded(boolean isLoading) {
         if (mOnLoadListener != null) {
             mOnLoadListener.onLoad(isLoading);
         }
@@ -103,7 +104,7 @@ public class RayPlayer {
         }
     }
 
-    public void onErrorCall(int code, String msg){
+    public void onErrorCall(int code, String msg) {
         stop();
         if (mOnErrorListener != null) {
             mOnErrorListener.onError(code, msg);
@@ -156,6 +157,19 @@ public class RayPlayer {
 
     public void seek(int seconds) {
         native_seek(seconds);
+    }
+
+    public void playNext(String url) {
+        sPlayNext = true;
+        setSource(url);
+        stop();
+    }
+
+    public void onCallNext() {
+        if (sPlayNext) {
+            sPlayNext = false;
+            prepare();
+        }
     }
 
     private native void native_prepare(String source);
