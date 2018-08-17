@@ -137,6 +137,10 @@ public class RayPlayer {
         native_stop();
     }
 
+    public void seek(int seconds) {
+        native_seek(seconds);
+    }
+
     private native void native_prepare(String source);
 
     private native void native_start();
@@ -146,5 +150,7 @@ public class RayPlayer {
     private native void native_resume();
 
     private native void native_stop();
+
+    private native void native_seek(int seconds);
 
 }

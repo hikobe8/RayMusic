@@ -93,4 +93,12 @@ Java_com_ray_player_RayPlayer_native_1stop(JNIEnv *env, jobject instance) {
     nativeStopping = false;
 
 
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1seek(JNIEnv *env, jobject instance, jint seconds) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->seek(seconds);
+    }
+
 }

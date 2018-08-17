@@ -10,10 +10,12 @@ RayFFmpeg::RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const 
     this->url = url;
     this->avFormatContext = NULL;
     pthread_mutex_init(&init_mutex, NULL);
+    pthread_mutex_init(&seek_mutex, NULL);
 }
 
 RayFFmpeg::~RayFFmpeg() {
     pthread_mutex_destroy(&init_mutex);
+    pthread_mutex_destroy(&seek_mutex);
 }
 
 void * decodeRunnable(void *data){
@@ -68,6 +70,7 @@ void RayFFmpeg::decodeByFFmepg() {
                 rayAudio->codecpar = avFormatContext->streams[i]->codecpar;
                 rayAudio->duration = avFormatContext->duration / AV_TIME_BASE ;
                 rayAudio->time_base = avFormatContext->streams[i]->time_base;
+                this->duration = rayAudio->duration;
             }
         }
     }
@@ -139,8 +142,20 @@ void RayFFmpeg::start() {
     rayAudio->play();
     int count = 0;
     while (playStatus != NULL && !playStatus->exit) {
+
+        if (playStatus->doSeek) {
+            continue;
+        }
+
+        if (rayAudio->packetQueue->getSize() > 40){
+            continue;
+        }
+
         AVPacket *avPacket = av_packet_alloc();
-        if (av_read_frame(avFormatContext, avPacket) == 0) {
+        pthread_mutex_lock(&seek_mutex);
+        int retCode = av_read_frame(avFormatContext, avPacket);
+        pthread_mutex_unlock(&seek_mutex);
+        if (retCode == 0) {
             if (avPacket->stream_index == rayAudio->streamIndex) {
                 count ++;
                 rayAudio->packetQueue->putPacket(avPacket);
@@ -255,4 +270,24 @@ void RayFFmpeg::release() {
         playStatus = NULL;
     }
     pthread_mutex_unlock(&init_mutex);
+}
+
+void RayFFmpeg::seek(int64_t seconds) {
+    if (duration <= 0) {
+        //直播duration为0
+        return;
+    }
+    if (seconds >= 0 && seconds <= duration) {
+        if (rayAudio != NULL) {
+            playStatus->doSeek = true;
+            rayAudio->packetQueue->clearAVPacket();
+            rayAudio->clock = 0;
+            rayAudio->lastTime = 0;
+            pthread_mutex_lock(&seek_mutex);
+            int64_t real = seconds * AV_TIME_BASE;
+            avformat_seek_file(avFormatContext, -1, INT64_MIN, real, INT64_MAX, 0);
+            pthread_mutex_unlock(&seek_mutex);
+            playStatus->doSeek = false;
+        }
+    }
 }

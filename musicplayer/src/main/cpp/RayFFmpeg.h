@@ -26,6 +26,8 @@ public:
     RayPlayStatus* playStatus;
     pthread_mutex_t init_mutex;
     bool exit;
+    int duration;
+    pthread_mutex_t seek_mutex;
 
 public:
     RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const char *url);
@@ -45,6 +47,8 @@ public:
     void stop();
 
     void release();
+
+    void seek(int64_t seconds);
 };
 
 

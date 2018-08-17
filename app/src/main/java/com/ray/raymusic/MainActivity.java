@@ -11,6 +11,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.ray.TimeUtil;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TEST_FILE = "output.mp3";
     private RayPlayer mPlayer;
     private TextView mTvTime;
+    private SeekBar mSeekBar;
     private MHandler mMHandler;
 
     static class MHandler extends Handler {
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
             MainActivity mainActivity = mContextWeakReference.get();
             if (mainActivity != null && msg.what == KEY_UPDATE_PLAY_TIME) {
                 TimeInfo timeInfo = (TimeInfo) msg.obj;
+                mainActivity.mSeekBar.setMax(timeInfo.duration);
+                mainActivity.mSeekBar.setProgress(timeInfo.nowTime);
                 String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
                 String duration = TimeUtil.getMMssTime(timeInfo.duration);
                 mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
@@ -63,6 +67,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mTvTime = findViewById(R.id.tv_time);
         mMHandler = new MHandler(this);
+        mSeekBar = findViewById(R.id.seek_bar);
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser)
+                    mPlayer.seek(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     public void start(View view) {
@@ -129,8 +151,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         if (TEST_NET_SWITCH) {
-//            mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
+            mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
         } else {
             mPlayer.setSource(Environment.getExternalStorageDirectory() + File.separator + TEST_FILE);
         }
