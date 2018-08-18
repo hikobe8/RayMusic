@@ -54,6 +54,7 @@
 
         <SeekBar
             android:id="@+id/seek_bar"
+            android:max="100"
             android:layout_toLeftOf="@id/tv_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>

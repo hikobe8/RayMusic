@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView mTvTime;
     private SeekBar mSeekBar;
     private MHandler mMHandler;
+    private int mPlayPosition;
+    private boolean doSeek;
 
     static class MHandler extends Handler {
         WeakReference<MainActivity> mContextWeakReference;
@@ -52,18 +54,16 @@ public class MainActivity extends AppCompatActivity {
             super.handleMessage(msg);
             MainActivity mainActivity = mContextWeakReference.get();
             if (mainActivity != null && msg.what == KEY_UPDATE_PLAY_TIME) {
-                TimeInfo timeInfo = (TimeInfo) msg.obj;
-                mainActivity.mSeekBar.setMax(timeInfo.duration);
-                if (!mainActivity.doSeek)
-                    mainActivity.mSeekBar.setProgress(timeInfo.nowTime);
-                String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
-                String duration = TimeUtil.getMMssTime(timeInfo.duration);
-                mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
+                if (!mainActivity.doSeek) {
+                    TimeInfo timeInfo = (TimeInfo) msg.obj;
+                    mainActivity.mSeekBar.setProgress((int) (timeInfo.nowTime*1f/timeInfo.duration * 100 + 0.5f));
+                    String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
+                    String duration = TimeUtil.getMMssTime(timeInfo.duration);
+                    mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
+                }
             }
         }
     }
-
-    private boolean doSeek;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +75,13 @@ public class MainActivity extends AppCompatActivity {
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser)
-                    mPlayer.seek(progress);
+                if (mPlayer.getDuration() > 0 && fromUser) {
+                    mPlayPosition = (int) (progress/100f*mPlayer.getDuration()+0.5f);
+                    String nowTime = TimeUtil.getMMssTime(mPlayPosition);
+                    String duration = TimeUtil.getMMssTime(mPlayer.getDuration());
+                    mTvTime.setText(getString(R.string.play_time, nowTime, duration));
+                }
+
             }
 
             @Override
@@ -87,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 doSeek = false;
+                mPlayer.seek(mPlayPosition);
             }
         });
     }

@@ -11,6 +11,8 @@ import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 
+import javax.xml.datatype.Duration;
+
 /***
  *  Author : ryu18356@gmail.com
  *  Create at 2018-08-07 18:44
@@ -40,6 +42,7 @@ public class RayPlayer {
 
     private static TimeInfo sTimeInfo;
     private static boolean sPlayNext;
+    private static int sDuration = -1;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -80,42 +83,6 @@ public class RayPlayer {
                 native_prepare(mSource);
             }
         }).start();
-    }
-
-    public void onCallPrepared() {
-        if (mPlayerPrepareListener != null)
-            mPlayerPrepareListener.onPrepared();
-    }
-
-    public void onResourceLoaded(boolean isLoading) {
-        if (mOnLoadListener != null) {
-            mOnLoadListener.onLoad(isLoading);
-        }
-    }
-
-    public void onPlayTimeChanged(int nowTime, int duration) {
-        if (mPlayTimeListener != null) {
-            if (sTimeInfo == null) {
-                sTimeInfo = new TimeInfo(nowTime, duration);
-            }
-            sTimeInfo.nowTime = nowTime;
-            sTimeInfo.duration = duration;
-            mPlayTimeListener.onPlayTimeChanged(sTimeInfo);
-        }
-    }
-
-    public void onErrorCall(int code, String msg) {
-        stop();
-        if (mOnErrorListener != null) {
-            mOnErrorListener.onError(code, msg);
-        }
-    }
-
-    public void onCallComplete() {
-        stop();
-        if (mOnCompleteListener != null) {
-            mOnCompleteListener.onComplete();
-        }
     }
 
     public void start() {
@@ -165,6 +132,49 @@ public class RayPlayer {
         stop();
     }
 
+    public int getDuration() {
+        if (sDuration < 0) {
+            sDuration = native_getDuration();
+        }
+        return sDuration;
+    }
+
+    public void onCallPrepared() {
+        if (mPlayerPrepareListener != null)
+            mPlayerPrepareListener.onPrepared();
+    }
+
+    public void onResourceLoaded(boolean isLoading) {
+        if (mOnLoadListener != null) {
+            mOnLoadListener.onLoad(isLoading);
+        }
+    }
+
+    public void onPlayTimeChanged(int nowTime, int duration) {
+        if (mPlayTimeListener != null) {
+            if (sTimeInfo == null) {
+                sTimeInfo = new TimeInfo(nowTime, duration);
+            }
+            sTimeInfo.nowTime = nowTime;
+            sTimeInfo.duration = duration;
+            mPlayTimeListener.onPlayTimeChanged(sTimeInfo);
+        }
+    }
+
+    public void onErrorCall(int code, String msg) {
+        stop();
+        if (mOnErrorListener != null) {
+            mOnErrorListener.onError(code, msg);
+        }
+    }
+
+    public void onCallComplete() {
+        stop();
+        if (mOnCompleteListener != null) {
+            mOnCompleteListener.onComplete();
+        }
+    }
+
     public void onCallNext() {
         if (sPlayNext) {
             sPlayNext = false;
@@ -183,5 +193,7 @@ public class RayPlayer {
     private native void native_stop();
 
     private native void native_seek(int seconds);
+
+    private native int native_getDuration();
 
 }

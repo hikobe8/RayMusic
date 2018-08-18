@@ -110,4 +110,12 @@ Java_com_ray_player_RayPlayer_native_1seek(JNIEnv *env, jobject instance, jint s
         rayFFmpeg->seek(seconds);
     }
 
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_ray_player_RayPlayer_native_1getDuration(JNIEnv *env, jobject instance) {
+
+    if (rayFFmpeg != NULL) {
+        return rayFFmpeg->duration;
+    }
+    return 0;
 }
