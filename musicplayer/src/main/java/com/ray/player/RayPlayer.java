@@ -43,6 +43,7 @@ public class RayPlayer {
     private static TimeInfo sTimeInfo;
     private static boolean sPlayNext;
     private static int sDuration = -1;
+    private static int sVolumePercent = 50;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -139,6 +140,17 @@ public class RayPlayer {
         return sDuration;
     }
 
+    public int getVolume() {
+        return sVolumePercent;
+    }
+
+    public void setVolume(int volumePercent) {
+        if (volumePercent >= 0 && volumePercent <= 100) {
+            sVolumePercent = volumePercent;
+            native_setVolume(volumePercent);
+        }
+    }
+
     public void onCallPrepared() {
         if (mPlayerPrepareListener != null)
             mPlayerPrepareListener.onPrepared();
@@ -196,4 +208,5 @@ public class RayPlayer {
 
     private native int native_getDuration();
 
+    private native void native_setVolume(int volumePercent);
 }

@@ -283,3 +283,9 @@ void RayFFmpeg::seek(int64_t seconds) {
         }
     }
 }
+
+void RayFFmpeg::setVolume(int percent) {
+    if (rayAudio != NULL) {
+        rayAudio->setVolume(percent);
+    }
+}

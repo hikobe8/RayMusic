@@ -36,6 +36,7 @@ public:
     double now_time = 0;
     double clock = 0;
     double lastTime = 0;
+    int volumePercent = 50;
 
     SLObjectItf slEngineObjectItf = NULL;
     SLEngineItf slEngineItf = NULL;
@@ -44,7 +45,7 @@ public:
     SLEnvironmentalReverbSettings reverbSettings = SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
     SLObjectItf pcmPlayerObject = NULL;
     SLPlayItf pcmPlayerPlay = NULL;
-    SLVolumeItf pcmVolumeItf = NULL;
+    SLVolumeItf pcmVolumePlay = NULL;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
@@ -67,6 +68,9 @@ public:
     void initOpenSLES();
 
     int getSampleRateForOpenSLES(int sample_rate);
+
+    void setVolume(int percent);
+
 };
 
 

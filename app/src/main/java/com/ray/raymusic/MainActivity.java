@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private RayPlayer mPlayer;
     private TextView mTvTime;
     private SeekBar mSeekBar;
+    private SeekBar mSeekBarVol;
     private MHandler mMHandler;
     private int mPlayPosition;
     private boolean doSeek;
@@ -70,8 +71,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTvTime = findViewById(R.id.tv_time);
-        mMHandler = new MHandler(this);
         mSeekBar = findViewById(R.id.seek_bar);
+        mSeekBarVol = findViewById(R.id.seek_bar_volume);
+        mMHandler = new MHandler(this);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -93,6 +95,22 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 doSeek = false;
                 mPlayer.seek(mPlayPosition);
+            }
+        });
+        mSeekBarVol.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                mPlayer.setVolume(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }
@@ -119,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void prepare() {
         mPlayer = new RayPlayer();
+        mSeekBarVol.setProgress(mPlayer.getVolume());
         mPlayer.setPlayerPrepareListener(new PlayerPrepareListener() {
             @Override
             public void onPrepared() {
@@ -160,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete() {
                 MyLog.w("播放完成");
+                mSeekBar.setProgress(0);
+                mTvTime.setText("");
             }
         });
 

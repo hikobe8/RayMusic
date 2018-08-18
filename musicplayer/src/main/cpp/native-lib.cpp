@@ -118,4 +118,12 @@ Java_com_ray_player_RayPlayer_native_1getDuration(JNIEnv *env, jobject instance)
         return rayFFmpeg->duration;
     }
     return 0;
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1setVolume(JNIEnv *env, jobject instance, jint volumePercent) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->setVolume(volumePercent);
+    }
+
 }
