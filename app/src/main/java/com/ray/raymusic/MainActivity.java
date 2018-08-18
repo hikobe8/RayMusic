@@ -179,8 +179,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onComplete() {
                 MyLog.w("播放完成");
-                mSeekBar.setProgress(0);
-                mTvTime.setText("");
+                mMHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSeekBar.setProgress(0);
+                        mTvTime.setText("");
+                    }
+                });
             }
         });
 
