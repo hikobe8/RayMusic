@@ -289,3 +289,9 @@ void RayFFmpeg::setVolume(int percent) {
         rayAudio->setVolume(percent);
     }
 }
+
+void RayFFmpeg::setMute(int mute) {
+    if (rayAudio != NULL) {
+        rayAudio->setMute(mute);
+    }
+}

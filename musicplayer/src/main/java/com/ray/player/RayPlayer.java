@@ -10,6 +10,7 @@ import com.ray.listener.OnPauseResumeListener;
 import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
+import com.ray.type.ChannelType;
 
 import javax.xml.datatype.Duration;
 
@@ -151,6 +152,10 @@ public class RayPlayer {
         }
     }
 
+    public void setChannelType(@ChannelType int type){
+        native_setChannelType(type);
+    }
+
     public void onCallPrepared() {
         if (mPlayerPrepareListener != null)
             mPlayerPrepareListener.onPrepared();
@@ -209,4 +214,6 @@ public class RayPlayer {
     private native int native_getDuration();
 
     private native void native_setVolume(int volumePercent);
+
+    private native void native_setChannelType(int type);
 }

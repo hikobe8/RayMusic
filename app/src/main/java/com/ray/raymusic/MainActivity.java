@@ -24,6 +24,7 @@ import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 import com.ray.player.RayPlayer;
+import com.ray.type.ChannelType;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -212,6 +213,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void next(View view) {
         mPlayer.playNext("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
+    }
+
+    public void leftClick(View view) {
+        mPlayer.setChannelType(ChannelType.LEFT);
+    }
+
+    public void rightClick(View view) {
+        mPlayer.setChannelType(ChannelType.RIGHT);
+    }
+
+    public void allClick(View view) {
+        mPlayer.setChannelType(ChannelType.ALL);
     }
 
 

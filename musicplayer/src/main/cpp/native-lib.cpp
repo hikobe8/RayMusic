@@ -126,4 +126,12 @@ Java_com_ray_player_RayPlayer_native_1setVolume(JNIEnv *env, jobject instance, j
         rayFFmpeg->setVolume(volumePercent);
     }
 
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1setChannelType(JNIEnv *env, jobject instance, jint type) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->setMute(type);
+    }
+
 }

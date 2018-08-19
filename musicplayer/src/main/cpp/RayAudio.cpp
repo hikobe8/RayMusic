@@ -171,7 +171,7 @@ void RayAudio::initOpenSLES() {
     };
     SLDataSource dataSource = {&android_queue, &pcm};
     SLDataSink dataSink = {&outputMix, NULL};
-    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME};
+    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_MUTESOLO};
     const SLboolean reqs[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
     (*slEngineItf)->CreateAudioPlayer(slEngineItf, &pcmPlayerObject, &dataSource, &dataSink, 3, ids,
                                       reqs);
@@ -187,6 +187,9 @@ void RayAudio::initOpenSLES() {
     //获取音量接口
     (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_VOLUME, &pcmVolumePlay);
     setVolume(volumePercent);
+    //获取声道接口
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_MUTESOLO, &pcmMutePlay);
+    setMute(mute);
     //设置播放状态
     (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
 
@@ -329,3 +332,28 @@ void RayAudio::setVolume(int percent) {
         }
     }
 }
+
+void RayAudio::setMute(int mute) {
+    this->mute = mute;
+    if (pcmMutePlay != NULL) {
+        switch (mute) {
+            case 0:
+                //左声道
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 0, SL_BOOLEAN_FALSE);
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 1, SL_BOOLEAN_TRUE);
+                break;
+            case 1:
+                //右声道
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 0, SL_BOOLEAN_TRUE);
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 1, SL_BOOLEAN_FALSE);
+                break;
+            default:
+                //立体声
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 0, SL_BOOLEAN_FALSE);
+                (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 1, SL_BOOLEAN_FALSE);
+                break;
+        }
+    }
+}
+
+

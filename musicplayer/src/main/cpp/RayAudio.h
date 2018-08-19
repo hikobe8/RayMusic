@@ -37,6 +37,7 @@ public:
     double clock = 0;
     double lastTime = 0;
     int volumePercent = 50;
+    int mute = 2;
 
     SLObjectItf slEngineObjectItf = NULL;
     SLEngineItf slEngineItf = NULL;
@@ -46,6 +47,7 @@ public:
     SLObjectItf pcmPlayerObject = NULL;
     SLPlayItf pcmPlayerPlay = NULL;
     SLVolumeItf pcmVolumePlay = NULL;
+    SLMuteSoloItf pcmMutePlay = NULL;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
@@ -71,6 +73,7 @@ public:
 
     void setVolume(int percent);
 
+    void setMute(int mute);
 };
 
 
