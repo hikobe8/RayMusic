@@ -7,6 +7,7 @@
 
 #include "RayQueue.h"
 #include "RayCallJava.h"
+#include "SoundTouch.h"
 
 extern "C"
 {
