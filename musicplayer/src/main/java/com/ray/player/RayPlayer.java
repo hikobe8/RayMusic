@@ -12,8 +12,6 @@ import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 import com.ray.type.ChannelType;
 
-import javax.xml.datatype.Duration;
-
 /***
  *  Author : ryu18356@gmail.com
  *  Create at 2018-08-07 18:44
@@ -45,6 +43,8 @@ public class RayPlayer {
     private static boolean sPlayNext;
     private static int sDuration = -1;
     private static int sVolumePercent = 50;
+    private static float sPitch = 1.0f;
+    private static float sSpeed = 1.0f;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -156,6 +156,16 @@ public class RayPlayer {
         native_setChannelType(type);
     }
 
+    public void setPitch(float pitch){
+        sPitch = pitch;
+        native_setPitch(pitch);
+    }
+
+    public void setSpeed(float speed){
+        sSpeed = speed;
+        native_setSpeed(speed);
+    }
+
     public void onCallPrepared() {
         if (mPlayerPrepareListener != null)
             mPlayerPrepareListener.onPrepared();
@@ -216,4 +226,8 @@ public class RayPlayer {
     private native void native_setVolume(int volumePercent);
 
     private native void native_setChannelType(int type);
+
+    private native void native_setPitch(float pitch);
+
+    private native void native_setSpeed(float speed);
 }

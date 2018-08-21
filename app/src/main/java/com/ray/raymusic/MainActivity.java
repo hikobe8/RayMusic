@@ -227,6 +227,25 @@ public class MainActivity extends AppCompatActivity {
         mPlayer.setChannelType(ChannelType.ALL);
     }
 
+    public void speed(View view) {
+        mPlayer.setSpeed(1.5f);
+        mPlayer.setPitch(1.0f);
+    }
+
+    public void pitch(View view) {
+        mPlayer.setSpeed(1.0f);
+        mPlayer.setPitch(1.5f);
+    }
+
+    public void speedPitch(View view) {
+        mPlayer.setSpeed(1.5f);
+        mPlayer.setPitch(1.5f);
+    }
+
+    public void normalSpeedPitch(View view) {
+        mPlayer.setSpeed(1.0f);
+        mPlayer.setPitch(1.0f);
+    }
 
     @Override
     protected void onDestroy() {

@@ -295,3 +295,15 @@ void RayFFmpeg::setMute(int mute) {
         rayAudio->setMute(mute);
     }
 }
+
+void RayFFmpeg::setPitch(float pitch) {
+    if (rayAudio != NULL) {
+        rayAudio->setPitch(pitch);
+    }
+}
+
+void RayFFmpeg::setSpeed(float speed) {
+    if (rayAudio != NULL) {
+        rayAudio->setSpeed(speed);
+    }
+}

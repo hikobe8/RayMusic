@@ -9,6 +9,9 @@
 #include "RayCallJava.h"
 #include "SoundTouch.h"
 
+
+using namespace soundtouch;
+
 extern "C"
 {
 #include "libavcodec/avcodec.h"
@@ -19,16 +22,16 @@ extern "C"
 
 class RayAudio {
 public:
-    RayCallJava* callJava;
+    RayCallJava *callJava;
     int streamIndex = -1;
     AVCodecParameters *codecpar = NULL;
     AVCodecContext *avCodecContext = NULL;
     RayQueue *packetQueue = NULL;
     pthread_t play_thread;
     RayPlayStatus *playStatus = NULL;
-    AVPacket * avPacket = NULL;
-    AVFrame * avFrame = NULL;
-    uint8_t * buffer = NULL;
+    AVPacket *avPacket = NULL;
+    AVFrame *avFrame = NULL;
+    uint8_t *buffer = NULL;
     int ret = 0;
     int data_size = 0;
     int sample_rate = 0;
@@ -39,6 +42,8 @@ public:
     double lastTime = 0;
     int volumePercent = 50;
     int mute = 2;
+    float pitch = 1.0f;
+    float speed = 1.0f;
 
     SLObjectItf slEngineObjectItf = NULL;
     SLEngineItf slEngineItf = NULL;
@@ -51,8 +56,15 @@ public:
     SLMuteSoloItf pcmMutePlay = NULL;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
+    SoundTouch *soundTouch;
+    SAMPLETYPE *sampleBuffer;
+    bool finished = true;
+    uint8_t *out_buffer;
+    int nb;
+    int num;
+
 public:
-    RayAudio(RayCallJava* callJava, RayPlayStatus *playStatus, int sample_rate);
+    RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_rate);
 
     ~RayAudio();
 
@@ -66,7 +78,7 @@ public:
 
     void release();
 
-    int resampleAudio();
+    int resampleAudio(void **pcmBuff);
 
     void initOpenSLES();
 
@@ -75,6 +87,13 @@ public:
     void setVolume(int percent);
 
     void setMute(int mute);
+
+    int getSoundTouchData();
+
+    void setPitch(float pitch);
+
+    void setSpeed(float speed);
+
 };
 
 

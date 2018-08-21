@@ -134,4 +134,20 @@ Java_com_ray_player_RayPlayer_native_1setChannelType(JNIEnv *env, jobject instan
         rayFFmpeg->setMute(type);
     }
 
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1setPitch(JNIEnv *env, jobject instance, jfloat pitch) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->setPitch(pitch);
+    }
+
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1setSpeed(JNIEnv *env, jobject instance, jfloat speed) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->setSpeed(speed);
+    }
+
 }

@@ -4,12 +4,19 @@
 
 #include "RayAudio.h"
 
-RayAudio::RayAudio(RayCallJava* callJava, RayPlayStatus *playStatus, int sample_rate) {
+RayAudio::RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_rate) {
     this->callJava = callJava;
     this->playStatus = playStatus;
     this->sample_rate = sample_rate;
     this->packetQueue = new RayQueue(playStatus);
     buffer = (uint8_t *) (av_malloc(sample_rate * 2 * 2));
+
+    sampleBuffer = static_cast<SAMPLETYPE *>(malloc(sample_rate * 2 * 2));
+    soundTouch = new SoundTouch();
+    soundTouch->setSampleRate(sample_rate);
+    soundTouch->setChannels(2);
+    soundTouch->setPitch(1.0f);
+    soundTouch->setTempo(1.5f);
 }
 
 RayAudio::~RayAudio() {
@@ -28,7 +35,7 @@ void RayAudio::play() {
     pthread_create(&play_thread, NULL, resampleRunnable, this);
 }
 
-int RayAudio::resampleAudio() {
+int RayAudio::resampleAudio(void **pcmBuff) {
     while (playStatus != NULL && !playStatus->exit) {
         if (packetQueue->getQueueSize() == 0) {
             //正在加载
@@ -88,11 +95,11 @@ int RayAudio::resampleAudio() {
                 swr_free(&swr_ctx);
                 continue;
             }
-            int nb = swr_convert(swr_ctx,
-                                 &buffer,
-                                 avFrame->nb_samples,
-                                 (const uint8_t **) (avFrame->data),
-                                 avFrame->nb_samples
+            nb = swr_convert(swr_ctx,
+                             &buffer,
+                             avFrame->nb_samples,
+                             (const uint8_t **) (avFrame->data),
+                             avFrame->nb_samples
             );
 
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
@@ -103,7 +110,7 @@ int RayAudio::resampleAudio() {
                 now_time = clock;
             }
             clock = now_time;
-
+            *pcmBuff = buffer;
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -128,15 +135,17 @@ int RayAudio::resampleAudio() {
 void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) (pContext);
-    int dataSize = rayAudio->resampleAudio();
-    rayAudio->clock += dataSize/(double)(rayAudio->sample_rate*2*2);
-    if (rayAudio->callJava != NULL) {
-        if(rayAudio->clock - rayAudio->lastTime > 0.1) {
-            rayAudio->lastTime = rayAudio->clock;
-            rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+    int dataSize = rayAudio->getSoundTouchData();
+    if (dataSize > 0) {
+        rayAudio->clock += dataSize / (double) (rayAudio->sample_rate * 2 * 2);
+        if (rayAudio->callJava != NULL) {
+            if (rayAudio->clock - rayAudio->lastTime > 0.1) {
+                rayAudio->lastTime = rayAudio->clock;
+                rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+            }
         }
+        (*caller)->Enqueue(caller, (char *)rayAudio->sampleBuffer, dataSize*2*2);
     }
-    (*caller)->Enqueue(caller, rayAudio->buffer, dataSize);
 }
 
 void RayAudio::initOpenSLES() {
@@ -163,7 +172,7 @@ void RayAudio::initOpenSLES() {
     SLDataFormat_PCM pcm = {
             SL_DATAFORMAT_PCM,//数据格式
             2,//声道格式
-            (SLuint32)(getSampleRateForOpenSLES(sample_rate)), //采样率
+            (SLuint32) (getSampleRateForOpenSLES(sample_rate)), //采样率
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_PCMSAMPLEFORMAT_FIXED_16,
             SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
@@ -190,6 +199,8 @@ void RayAudio::initOpenSLES() {
     //获取声道接口
     (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_MUTESOLO, &pcmMutePlay);
     setMute(mute);
+    setPitch(pitch);
+    setSpeed(speed);
     //设置播放状态
     (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
 
@@ -264,7 +275,7 @@ void RayAudio::release() {
     stop();
     //删除AVPacket 队列 会调用RayQueue的析构函数
     if (packetQueue != NULL) {
-        delete(packetQueue);
+        delete (packetQueue);
         packetQueue = NULL;
     }
 
@@ -310,7 +321,7 @@ void RayAudio::release() {
 
 void RayAudio::setVolume(int percent) {
     volumePercent = percent;
-    if(pcmVolumePlay != NULL) {
+    if (pcmVolumePlay != NULL) {
         if (percent > 30) {
             (*pcmVolumePlay)->SetVolumeLevel(pcmVolumePlay, (100 - percent) * -20);
         } else if (percent > 25) {
@@ -353,6 +364,54 @@ void RayAudio::setMute(int mute) {
                 (*pcmMutePlay)->SetChannelMute(pcmMutePlay, 1, SL_BOOLEAN_FALSE);
                 break;
         }
+    }
+}
+
+int RayAudio::getSoundTouchData() {
+    while (playStatus != NULL && !playStatus->exit) {
+        out_buffer = NULL;
+        if (finished) {
+            finished = false;
+            data_size = resampleAudio(reinterpret_cast<void **>(&out_buffer));
+            if (data_size > 0) {
+                for (int i = 0; i < data_size / 2 + 1; ++i) {
+                    sampleBuffer[i] = (out_buffer[i * 2] | (out_buffer[i * 2 + 1] << 8));
+                }
+                soundTouch->putSamples(sampleBuffer, nb);
+                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
+            } else {
+                soundTouch->flush();
+            }
+
+        }
+        if (num == 0) {
+            finished = true;
+            continue;
+        } else{
+            if (out_buffer == NULL) {
+                num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
+                if (num == 0) {
+                    finished = true;
+                    continue;
+                }
+            }
+            return num;
+        }
+    }
+    return 0;
+}
+
+void RayAudio::setPitch(float pitch) {
+    this->pitch = pitch;
+    if (soundTouch != NULL) {
+        soundTouch->setPitch(pitch);
+    }
+}
+
+void RayAudio::setSpeed(float speed) {
+    this->speed = speed;
+    if (soundTouch != NULL) {
+        soundTouch->setTempo(speed);
     }
 }
 
