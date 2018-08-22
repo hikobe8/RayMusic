@@ -23,6 +23,7 @@ public:
     jmethodID jMIDTime;
     jmethodID jMIDCallError;
     jmethodID jMIDCallComplete;
+    jmethodID jMIDCallDbValueChanged;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -38,6 +39,8 @@ public:
     void onCallError(int type, int code, const char *msg);
 
     void onCallComplete(int type);
+
+    void onDbValueChanged(int type, int db);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H

@@ -3,6 +3,7 @@ package com.ray.player;
 import android.text.TextUtils;
 
 import com.ray.entity.TimeInfo;
+import com.ray.listener.DbChangeListener;
 import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
@@ -38,6 +39,7 @@ public class RayPlayer {
     private PlayTimeListener mPlayTimeListener;
     private OnErrorListener mOnErrorListener;
     private OnCompleteListener mOnCompleteListener;
+    private DbChangeListener mDbChangeListener;
 
     private static TimeInfo sTimeInfo;
     private static boolean sPlayNext;
@@ -68,6 +70,10 @@ public class RayPlayer {
 
     public void setOnCompleteListener(OnCompleteListener onCompleteListener) {
         mOnCompleteListener = onCompleteListener;
+    }
+
+    public void setDbChangeListener(DbChangeListener dbChangeListener) {
+        mDbChangeListener = dbChangeListener;
     }
 
     public void setSource(String source) {
@@ -206,6 +212,12 @@ public class RayPlayer {
         if (sPlayNext) {
             sPlayNext = false;
             prepare();
+        }
+    }
+
+    public void onDbValueChanged(int db) {
+        if (mDbChangeListener != null) {
+            mDbChangeListener.onDbChanged(db);
         }
     }
 

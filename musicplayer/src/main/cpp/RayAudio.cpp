@@ -36,6 +36,7 @@ void RayAudio::play() {
 }
 
 int RayAudio::resampleAudio(void **pcmBuff) {
+    data_size = 0;
     while (playStatus != NULL && !playStatus->exit) {
         if (packetQueue->getQueueSize() == 0) {
             //正在加载
@@ -135,16 +136,20 @@ int RayAudio::resampleAudio(void **pcmBuff) {
 void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) (pContext);
-    int dataSize = rayAudio->getSoundTouchData();
-    if (dataSize > 0) {
-        rayAudio->clock += dataSize / (double) (rayAudio->sample_rate * 2 * 2);
-        if (rayAudio->callJava != NULL) {
-            if (rayAudio->clock - rayAudio->lastTime > 0.1) {
-                rayAudio->lastTime = rayAudio->clock;
-                rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+    if (rayAudio != NULL) {
+        int dataSize = rayAudio->getSoundTouchData();
+        if (dataSize > 0) {
+            rayAudio->clock += dataSize / (double) (rayAudio->sample_rate * 2 * 2);
+            if (rayAudio->callJava != NULL) {
+                if (rayAudio->clock - rayAudio->lastTime > 0.1) {
+                    rayAudio->lastTime = rayAudio->clock;
+                    rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+                }
+                rayAudio->callJava->onDbValueChanged(CHILD_THREAD, rayAudio->getPcmDB(
+                        (char *)(rayAudio->sampleBuffer), dataSize * 4));
             }
+            (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, (char *)rayAudio->sampleBuffer, dataSize*2*2);
         }
-        (*caller)->Enqueue(caller, (char *)rayAudio->sampleBuffer, dataSize*2*2);
     }
 }
 
@@ -374,8 +379,8 @@ int RayAudio::getSoundTouchData() {
             finished = false;
             data_size = resampleAudio(reinterpret_cast<void **>(&out_buffer));
             if (data_size > 0) {
-                for (int i = 0; i < data_size / 2 + 1; ++i) {
-                    sampleBuffer[i] = (out_buffer[i * 2] | (out_buffer[i * 2 + 1] << 8));
+                for (int i = 0; i < data_size / 2 + 1; i++) {
+                    sampleBuffer[i] = (out_buffer[i * 2] | ((out_buffer[i * 2 + 1]) << 8));
                 }
                 soundTouch->putSamples(sampleBuffer, nb);
                 num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
@@ -413,6 +418,21 @@ void RayAudio::setSpeed(float speed) {
     if (soundTouch != NULL) {
         soundTouch->setTempo(speed);
     }
+}
+
+int RayAudio::getPcmDB(char *pcmData, size_t pcmSize) {
+    int db = 0;
+    short int perValue = 0;
+    double sum = 0;
+    for (int i = 0; i < pcmSize; i+=2) {
+        memcpy(&perValue, pcmData+i, 2);
+        sum += abs(perValue);
+    }
+    sum = sum/(pcmSize/2);
+    if (sum > 0) {
+        db = (int)20.0 * log10(sum);
+    }
+    return db;
 }
 
 

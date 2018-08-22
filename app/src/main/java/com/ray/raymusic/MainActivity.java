@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.ray.TimeUtil;
 import com.ray.entity.TimeInfo;
+import com.ray.listener.DbChangeListener;
 import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
@@ -189,7 +190,12 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-
+        mPlayer.setDbChangeListener(new DbChangeListener() {
+            @Override
+            public void onDbChanged(int db) {
+                MyLog.w("db value = " + db);
+            }
+        });
         if (TEST_NET_SWITCH) {
             mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
 //            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");

@@ -22,6 +22,7 @@ RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
     jMIDTime = jniEnv->GetMethodID(jclz, "onPlayTimeChanged", "(II)V");
     jMIDCallError = jniEnv->GetMethodID(jclz, "onErrorCall", "(ILjava/lang/String;)V");
     jMIDCallComplete = jniEnv->GetMethodID(jclz, "onCallComplete", "()V");
+    jMIDCallDbValueChanged = jniEnv->GetMethodID(jclz, "onDbValueChanged", "(I)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -107,6 +108,22 @@ void RayCallJava::onCallComplete(int type) {
             return;
         }
         jniEnv->CallVoidMethod(jobj, jMIDCallComplete);
+        javaVM->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onDbValueChanged(int type, int db) {
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jMIDCallDbValueChanged, db);
+    } else if (type == CHILD_THREAD) {
+        JNIEnv *jniEnv;
+        if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGE("get child thread jniEnv error!");
+            }
+            return;
+        }
+        jniEnv->CallVoidMethod(jobj, jMIDCallDbValueChanged, db);
         javaVM->DetachCurrentThread();
     }
 }

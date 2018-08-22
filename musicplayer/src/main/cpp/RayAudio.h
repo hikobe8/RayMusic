@@ -94,6 +94,8 @@ public:
 
     void setSpeed(float speed);
 
+    int getPcmDB(char* pcmData, size_t pcmSize);
+
 };
 
 
