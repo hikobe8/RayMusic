@@ -24,6 +24,7 @@ public:
     jmethodID jMIDCallError;
     jmethodID jMIDCallComplete;
     jmethodID jMIDCallDbValueChanged;
+    jmethodID jMIDEncodePcm2Aac;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -41,6 +42,8 @@ public:
     void onCallComplete(int type);
 
     void onDbValueChanged(int type, int db);
+
+    void onCallRecord(int type, int size, void* buffer);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H

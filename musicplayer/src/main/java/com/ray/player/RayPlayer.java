@@ -1,5 +1,8 @@
 package com.ray.player;
 
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
 import android.text.TextUtils;
 
 import com.ray.entity.TimeInfo;
@@ -12,6 +15,11 @@ import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
 import com.ray.type.ChannelType;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /***
  *  Author : ryu18356@gmail.com
@@ -158,18 +166,24 @@ public class RayPlayer {
         }
     }
 
-    public void setChannelType(@ChannelType int type){
+    public void setChannelType(@ChannelType int type) {
         native_setChannelType(type);
     }
 
-    public void setPitch(float pitch){
+    public void setPitch(float pitch) {
         sPitch = pitch;
         native_setPitch(pitch);
     }
 
-    public void setSpeed(float speed){
+    public void setSpeed(float speed) {
         sSpeed = speed;
         native_setSpeed(speed);
+    }
+
+    public void startRecord(File outFile) {
+        if (native_getSampleRate() > 0) {
+            initMediaCodec(outFile, native_getSampleRate());
+        }
     }
 
     public void onCallPrepared() {
@@ -242,4 +256,140 @@ public class RayPlayer {
     private native void native_setPitch(float pitch);
 
     private native void native_setSpeed(float speed);
+
+    private native int native_getSampleRate();
+
+    //MediaCodec
+    private MediaFormat mMediaFormat;
+    private MediaCodec mEncoder;
+    private FileOutputStream mAACOutputStream;
+    private MediaCodec.BufferInfo mInfo;
+    private int mPerPcmSize;
+    private byte[] mOutByteBuffer;
+    private int mAacSampleRate = 4;
+
+    private void initMediaCodec(File outFile, int sampleRate) {
+        try {
+            mAacSampleRate = getADTSsamplerate(sampleRate);
+            mMediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2);
+            mMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 96000);
+            mMediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+            mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096);
+            mEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+            mInfo = new MediaCodec.BufferInfo();
+            mEncoder.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mAACOutputStream = new FileOutputStream(outFile);
+            mEncoder.start();
+
+            //todo free memory??
+        } catch (IOException e) {
+            MyLog.e("create MediaCodec Encoder wrong!");
+            e.printStackTrace();
+        }
+    }
+
+    private void encodePcm2Aac(int size, byte[] buffer) {
+
+        if (buffer != null && mEncoder != null) {
+            int inputBufferIndex = mEncoder.dequeueInputBuffer(0);
+            if (inputBufferIndex >= 0) {
+                ByteBuffer byteBuffer = mEncoder.getInputBuffers()[inputBufferIndex];
+                if (byteBuffer == null) {
+                    MyLog.e("fetch ByteBuffer wrong!");
+                    return;
+                }
+                byteBuffer.clear();
+                byteBuffer.put(buffer);
+                mEncoder.queueInputBuffer(inputBufferIndex, 0, size, 0, 0);
+            }
+            int index = mEncoder.dequeueOutputBuffer(mInfo, 0);
+            while (index >= 0) {
+                try {
+                    mPerPcmSize = mInfo.size + 7;
+                    mOutByteBuffer = new byte[mPerPcmSize];
+                    ByteBuffer byteBuffer = mEncoder.getOutputBuffers()[index];
+                    if (byteBuffer == null) {
+                        MyLog.e("fetch ByteBuffer wrong!");
+                        return;
+                    }
+                    byteBuffer.position(mInfo.offset);
+                    byteBuffer.limit(mInfo.offset + mInfo.size);
+
+                    addADtsHeader(mOutByteBuffer, mPerPcmSize, mAacSampleRate);
+
+                    byteBuffer.get(mOutByteBuffer, 7, mInfo.size);
+                    byteBuffer.position(mInfo.offset);
+                    mAACOutputStream.write(mOutByteBuffer, 0, mPerPcmSize);
+
+                    mEncoder.releaseOutputBuffer(index, false);
+                    index = mEncoder.dequeueOutputBuffer(mInfo, 0);
+                    mOutByteBuffer = null;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    private void addADtsHeader(byte[] packet, int packetLen, int samplerate) {
+        int profile = 2; // AAC LC
+        int freqIdx = samplerate; // samplerate
+        int chanCfg = 2; // CPE
+
+        packet[0] = (byte) 0xFF; // 0xFFF(12bit) 这里只取了8位，所以还差4位放到下一个里面
+        packet[1] = (byte) 0xF9; // 第一个t位放F
+        packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
+        packet[3] = (byte) (((chanCfg & 3) << 6) + (packetLen >> 11));
+        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
+        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
+        packet[6] = (byte) 0xFC;
+    }
+
+    private int getADTSsamplerate(int samplerate) {
+        int rate = 4;
+        switch (samplerate) {
+            case 96000:
+                rate = 0;
+                break;
+            case 88200:
+                rate = 1;
+                break;
+            case 64000:
+                rate = 2;
+                break;
+            case 48000:
+                rate = 3;
+                break;
+            case 44100:
+                rate = 4;
+                break;
+            case 32000:
+                rate = 5;
+                break;
+            case 24000:
+                rate = 6;
+                break;
+            case 22050:
+                rate = 7;
+                break;
+            case 16000:
+                rate = 8;
+                break;
+            case 12000:
+                rate = 9;
+                break;
+            case 11025:
+                rate = 10;
+                break;
+            case 8000:
+                rate = 11;
+                break;
+            case 7350:
+                rate = 12;
+                break;
+        }
+        return rate;
+    }
+
 }

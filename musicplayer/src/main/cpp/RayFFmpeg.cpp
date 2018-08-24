@@ -307,3 +307,10 @@ void RayFFmpeg::setSpeed(float speed) {
         rayAudio->setSpeed(speed);
     }
 }
+
+int RayFFmpeg::getSampleRate() {
+    if (rayAudio != NULL) {
+        return rayAudio->avCodecContext->sample_rate;
+    }
+    return 0;
+}

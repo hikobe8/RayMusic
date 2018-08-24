@@ -145,10 +145,11 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                     rayAudio->lastTime = rayAudio->clock;
                     rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
                 }
+                rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize*4, rayAudio->sampleBuffer);
                 rayAudio->callJava->onDbValueChanged(CHILD_THREAD, rayAudio->getPcmDB(
                         (char *)(rayAudio->sampleBuffer), dataSize * 4));
             }
-            (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, (char *)rayAudio->sampleBuffer, dataSize*2*2);
+            (*caller)->Enqueue(caller, (char *)rayAudio->sampleBuffer, dataSize*2*2);
         }
     }
 }

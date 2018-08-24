@@ -23,6 +23,7 @@ RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
     jMIDCallError = jniEnv->GetMethodID(jclz, "onErrorCall", "(ILjava/lang/String;)V");
     jMIDCallComplete = jniEnv->GetMethodID(jclz, "onCallComplete", "()V");
     jMIDCallDbValueChanged = jniEnv->GetMethodID(jclz, "onDbValueChanged", "(I)V");
+    jMIDEncodePcm2Aac = jniEnv->GetMethodID(jclz, "encodePcm2Aac", "(I[B)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -124,6 +125,28 @@ void RayCallJava::onDbValueChanged(int type, int db) {
             return;
         }
         jniEnv->CallVoidMethod(jobj, jMIDCallDbValueChanged, db);
+        javaVM->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallRecord(int type, int size, void *buffer) {
+    if (type == MAIN_THREAD) {
+        jbyteArray jBuffer = jniEnv->NewByteArray(size);
+        jniEnv->SetByteArrayRegion(jBuffer, 0, size, static_cast<const jbyte *>(buffer));
+        jniEnv->CallVoidMethod(jobj, jMIDEncodePcm2Aac, size, jBuffer);
+        jniEnv->DeleteLocalRef(jBuffer);
+    } else if (type == CHILD_THREAD) {
+        JNIEnv *jniEnv;
+        if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGE("get child thread jniEnv error!");
+            }
+            return;
+        }
+        jbyteArray jBuffer = jniEnv->NewByteArray(size);
+        jniEnv->SetByteArrayRegion(jBuffer, 0, size, static_cast<const jbyte *>(buffer));
+        jniEnv->CallVoidMethod(jobj, jMIDEncodePcm2Aac, size, jBuffer);
+        jniEnv->DeleteLocalRef(jBuffer);
         javaVM->DetachCurrentThread();
     }
 }

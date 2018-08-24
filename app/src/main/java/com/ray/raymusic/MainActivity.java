@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             if (mainActivity != null && msg.what == KEY_UPDATE_PLAY_TIME) {
                 if (!mainActivity.doSeek) {
                     TimeInfo timeInfo = (TimeInfo) msg.obj;
-                    mainActivity.mSeekBar.setProgress((int) (timeInfo.nowTime*1f/timeInfo.duration * 100 + 0.5f));
+                    mainActivity.mSeekBar.setProgress((int) (timeInfo.nowTime * 1f / timeInfo.duration * 100 + 0.5f));
                     String nowTime = TimeUtil.getMMssTime(timeInfo.nowTime);
                     String duration = TimeUtil.getMMssTime(timeInfo.duration);
                     mainActivity.mTvTime.setText(mainActivity.getString(R.string.play_time, nowTime, duration));
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (mPlayer.getDuration() > 0 && fromUser) {
-                    mPlayPosition = (int) (progress/100f*mPlayer.getDuration()+0.5f);
+                    mPlayPosition = (int) (progress / 100f * mPlayer.getDuration() + 0.5f);
                     String nowTime = TimeUtil.getMMssTime(mPlayPosition);
                     String duration = TimeUtil.getMMssTime(mPlayer.getDuration());
                     mTvTime.setText(getString(R.string.play_time, nowTime, duration));
@@ -251,6 +251,11 @@ public class MainActivity extends AppCompatActivity {
     public void normalSpeedPitch(View view) {
         mPlayer.setSpeed(1.0f);
         mPlayer.setPitch(1.0f);
+    }
+
+    public void record(View view) {
+        if (mPlayer != null)
+            mPlayer.startRecord(new File(Environment.getExternalStorageDirectory() + File.separator + "test.aac"));
     }
 
     @Override

@@ -150,4 +150,13 @@ Java_com_ray_player_RayPlayer_native_1setSpeed(JNIEnv *env, jobject instance, jf
         rayFFmpeg->setSpeed(speed);
     }
 
+}extern "C"
+JNIEXPORT jint JNICALL
+Java_com_ray_player_RayPlayer_native_1getSampleRate(JNIEnv *env, jobject instance) {
+
+    if (rayFFmpeg != NULL) {
+        return rayFFmpeg->getSampleRate();
+    }
+
+    return 0;
 }
