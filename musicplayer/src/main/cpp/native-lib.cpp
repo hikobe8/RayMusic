@@ -159,4 +159,13 @@ Java_com_ray_player_RayPlayer_native_1getSampleRate(JNIEnv *env, jobject instanc
     }
 
     return 0;
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_player_RayPlayer_native_1startStopRecord(JNIEnv *env, jobject instance,
+                                                      jboolean start) {
+
+    if (rayFFmpeg != NULL) {
+        rayFFmpeg->startStopRecord(start);
+    }
+
 }

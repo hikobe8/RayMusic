@@ -17,6 +17,7 @@ RayAudio::RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_
     soundTouch->setChannels(2);
     soundTouch->setPitch(1.0f);
     soundTouch->setTempo(1.5f);
+    this->startRecord = false;
 }
 
 RayAudio::~RayAudio() {
@@ -145,7 +146,9 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                     rayAudio->lastTime = rayAudio->clock;
                     rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
                 }
-                rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize*4, rayAudio->sampleBuffer);
+                if (rayAudio->startRecord) {
+                    rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize*4, rayAudio->sampleBuffer);
+                }
                 rayAudio->callJava->onDbValueChanged(CHILD_THREAD, rayAudio->getPcmDB(
                         (char *)(rayAudio->sampleBuffer), dataSize * 4));
             }
@@ -434,6 +437,10 @@ int RayAudio::getPcmDB(char *pcmData, size_t pcmSize) {
         db = (int)20.0 * log10(sum);
     }
     return db;
+}
+
+void RayAudio::startStopRecord(bool start) {
+    this->startRecord = start;
 }
 
 

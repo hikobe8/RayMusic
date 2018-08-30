@@ -53,6 +53,7 @@ public class RayPlayer {
     private static boolean sPlayNext;
     private static int sDuration = -1;
     private static int sVolumePercent = 50;
+    private boolean mInitMediacodec;
     private static float sPitch = 1.0f;
     private static float sSpeed = 1.0f;
 
@@ -259,6 +260,8 @@ public class RayPlayer {
 
     private native int native_getSampleRate();
 
+    private native void native_startStopRecord(boolean start);
+
     //MediaCodec
     private MediaFormat mMediaFormat;
     private MediaCodec mEncoder;
@@ -269,6 +272,8 @@ public class RayPlayer {
     private int mAacSampleRate = 4;
 
     private void initMediaCodec(File outFile, int sampleRate) {
+        if (mInitMediacodec)
+            return;
         try {
             mAacSampleRate = getADTSsamplerate(sampleRate);
             mMediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2);
@@ -278,8 +283,7 @@ public class RayPlayer {
 // mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096);
             mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 12000);
             mEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
-            if(mEncoder == null)
-            {
+            if (mEncoder == null) {
                 MyLog.d("create encoder wrong");
                 return;
             }
@@ -287,12 +291,47 @@ public class RayPlayer {
             mEncoder.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mAACOutputStream = new FileOutputStream(outFile);
             mEncoder.start();
-
-            //todo free memory??
+            native_startStopRecord(true);
+            mInitMediacodec = true;
         } catch (IOException e) {
             MyLog.e("create MediaCodec Encoder wrong!");
             e.printStackTrace();
         }
+    }
+
+    public void stopRecord() {
+        native_startStopRecord(false);
+        releaseMediaCodec();
+    }
+
+    public void pauseRecord() {
+        native_startStopRecord(false);
+    }
+
+    public void resumeRecord() {
+        native_startStopRecord(true);
+    }
+
+    private void releaseMediaCodec() {
+        if (mEncoder == null)
+            return;
+        try {
+            if (mAACOutputStream != null) {
+                mAACOutputStream.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            mAACOutputStream = null;
+            mEncoder.stop();
+            mEncoder.release();
+            mEncoder = null;
+            mMediaFormat = null;
+            mInfo = null;
+            mInitMediacodec = false;
+            MyLog.d("录制完成");
+        }
+        mAACOutputStream = null;
     }
 
     private void encodePcm2Aac(int size, byte[] buffer) {

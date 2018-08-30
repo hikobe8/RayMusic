@@ -62,6 +62,7 @@ public:
     uint8_t *out_buffer;
     int nb;
     int num;
+    bool startRecord;
 
 public:
     RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_rate);
@@ -94,7 +95,9 @@ public:
 
     void setSpeed(float speed);
 
-    int getPcmDB(char* pcmData, size_t pcmSize);
+    int getPcmDB(char *pcmData, size_t pcmSize);
+
+    void startStopRecord(bool start);
 
 };
 

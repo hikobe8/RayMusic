@@ -258,6 +258,23 @@ public class MainActivity extends AppCompatActivity {
             mPlayer.startRecord(new File(Environment.getExternalStorageDirectory() + File.separator + "test.aac"));
     }
 
+    public void stopRecord(View view) {
+        if (mPlayer != null)
+            mPlayer.stopRecord();
+    }
+
+    public void resumeRecord(View view) {
+        if (mPlayer != null) {
+            mPlayer.resumeRecord();
+        }
+    }
+
+    public void pauseRecord(View view) {
+        if (mPlayer != null) {
+            mPlayer.pauseRecord();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();

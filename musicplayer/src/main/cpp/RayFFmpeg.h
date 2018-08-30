@@ -28,6 +28,7 @@ public:
     bool exit;
     int duration;
     pthread_mutex_t seek_mutex;
+    bool startRecord;
 
 public:
     RayFFmpeg(RayPlayStatus* playStatus, RayCallJava *rayCallJava, const char *url);
@@ -59,6 +60,9 @@ public:
     void setSpeed(float speed);
 
     int getSampleRate();
+
+    void startStopRecord(bool start);
+
 };
 
 

@@ -314,3 +314,9 @@ int RayFFmpeg::getSampleRate() {
     }
     return 0;
 }
+
+void RayFFmpeg::startStopRecord(bool start) {
+    if (rayAudio != NULL) {
+        rayAudio->startStopRecord(start);
+    }
+}
