@@ -189,9 +189,9 @@ void RayAudio::initOpenSLES() {
     };
     SLDataSource dataSource = {&android_queue, &pcm};
     SLDataSink dataSink = {&outputMix, NULL};
-    const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_MUTESOLO};
-    const SLboolean reqs[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
-    (*slEngineItf)->CreateAudioPlayer(slEngineItf, &pcmPlayerObject, &dataSource, &dataSink, 3, ids,
+    const SLInterfaceID ids[4] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME,SL_IID_PLAYBACKRATE, SL_IID_MUTESOLO};
+    const SLboolean reqs[4] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+    (*slEngineItf)->CreateAudioPlayer(slEngineItf, &pcmPlayerObject, &dataSource, &dataSink, 4, ids,
                                       reqs);
     //初始化播放器
     (*pcmPlayerObject)->Realize(pcmPlayerObject, SL_BOOLEAN_FALSE);
