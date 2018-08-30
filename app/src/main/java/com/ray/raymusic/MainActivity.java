@@ -21,6 +21,7 @@ import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
+import com.ray.listener.OnRecordTimeChangeListener;
 import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TEST_FILE = "output.mp3";
     private RayPlayer mPlayer;
     private TextView mTvTime;
+    private TextView mTvRecordTime;
     private SeekBar mSeekBar;
     private SeekBar mSeekBarVol;
     private MHandler mMHandler;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         mTvTime = findViewById(R.id.tv_time);
         mSeekBar = findViewById(R.id.seek_bar);
         mSeekBarVol = findViewById(R.id.seek_bar_volume);
+        mTvRecordTime = findViewById(R.id.tv_record_time);
         mMHandler = new MHandler(this);
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -202,6 +205,17 @@ public class MainActivity extends AppCompatActivity {
         } else {
             mPlayer.setSource(Environment.getExternalStorageDirectory() + File.separator + TEST_FILE);
         }
+        mPlayer.setOnRecordTimeChangeListener(new OnRecordTimeChangeListener() {
+            @Override
+            public void onRecordTimeChanged(final int seconds) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvRecordTime.setText(TimeUtil.getMMssTime(seconds));
+                    }
+                });
+            }
+        });
         mPlayer.prepare();
     }
 

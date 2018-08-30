@@ -11,6 +11,7 @@ import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
+import com.ray.listener.OnRecordTimeChangeListener;
 import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
 import com.ray.log.MyLog;
@@ -48,14 +49,17 @@ public class RayPlayer {
     private OnErrorListener mOnErrorListener;
     private OnCompleteListener mOnCompleteListener;
     private DbChangeListener mDbChangeListener;
+    private OnRecordTimeChangeListener mOnRecordTimeChangeListener;
 
     private static TimeInfo sTimeInfo;
     private static boolean sPlayNext;
     private static int sDuration = -1;
     private static int sVolumePercent = 50;
-    private boolean mInitMediacodec;
+    private boolean mInitMediaCodec;
     private static float sPitch = 1.0f;
     private static float sSpeed = 1.0f;
+    private double mRecordTime;
+    private int mSampleRate;
 
     public void setPlayerPrepareListener(PlayerPrepareListener playerPrepareListener) {
         mPlayerPrepareListener = playerPrepareListener;
@@ -83,6 +87,10 @@ public class RayPlayer {
 
     public void setDbChangeListener(DbChangeListener dbChangeListener) {
         mDbChangeListener = dbChangeListener;
+    }
+
+    public void setOnRecordTimeChangeListener(OnRecordTimeChangeListener onRecordTimeChangeListener) {
+        mOnRecordTimeChangeListener = onRecordTimeChangeListener;
     }
 
     public void setSource(String source) {
@@ -182,9 +190,48 @@ public class RayPlayer {
     }
 
     public void startRecord(File outFile) {
-        if (native_getSampleRate() > 0) {
-            initMediaCodec(outFile, native_getSampleRate());
+        if (mInitMediaCodec)
+            return;
+        mSampleRate = native_getSampleRate();
+        if (mSampleRate > 0) {
+            initMediaCodec(outFile, mSampleRate);
         }
+    }
+
+    public void stopRecord() {
+        mRecordTime = 0;
+        native_startStopRecord(false);
+        releaseMediaCodec();
+    }
+
+    public void pauseRecord() {
+        native_startStopRecord(false);
+    }
+
+    public void resumeRecord() {
+        native_startStopRecord(true);
+    }
+
+    private void releaseMediaCodec() {
+        if (mEncoder == null)
+            return;
+        try {
+            if (mAACOutputStream != null) {
+                mAACOutputStream.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            mAACOutputStream = null;
+            mEncoder.stop();
+            mEncoder.release();
+            mEncoder = null;
+            mMediaFormat = null;
+            mInfo = null;
+            mInitMediaCodec = false;
+            MyLog.d("录制完成");
+        }
+        mAACOutputStream = null;
     }
 
     public void onCallPrepared() {
@@ -272,8 +319,6 @@ public class RayPlayer {
     private int mAacSampleRate = 4;
 
     private void initMediaCodec(File outFile, int sampleRate) {
-        if (mInitMediacodec)
-            return;
         try {
             mAacSampleRate = getADTSsamplerate(sampleRate);
             mMediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2);
@@ -292,51 +337,19 @@ public class RayPlayer {
             mAACOutputStream = new FileOutputStream(outFile);
             mEncoder.start();
             native_startStopRecord(true);
-            mInitMediacodec = true;
+            mInitMediaCodec = true;
         } catch (IOException e) {
             MyLog.e("create MediaCodec Encoder wrong!");
             e.printStackTrace();
         }
     }
 
-    public void stopRecord() {
-        native_startStopRecord(false);
-        releaseMediaCodec();
-    }
-
-    public void pauseRecord() {
-        native_startStopRecord(false);
-    }
-
-    public void resumeRecord() {
-        native_startStopRecord(true);
-    }
-
-    private void releaseMediaCodec() {
-        if (mEncoder == null)
-            return;
-        try {
-            if (mAACOutputStream != null) {
-                mAACOutputStream.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            mAACOutputStream = null;
-            mEncoder.stop();
-            mEncoder.release();
-            mEncoder = null;
-            mMediaFormat = null;
-            mInfo = null;
-            mInitMediacodec = false;
-            MyLog.d("录制完成");
-        }
-        mAACOutputStream = null;
-    }
-
     private void encodePcm2Aac(int size, byte[] buffer) {
-
         if (buffer != null && mEncoder != null) {
+            mRecordTime += size * 1.0f / (mSampleRate * 2 *2);
+            if (mOnRecordTimeChangeListener != null) {
+                mOnRecordTimeChangeListener.onRecordTimeChanged((int) mRecordTime);
+            }
             int inputBufferIndex = mEncoder.dequeueInputBuffer(0);
             if (inputBufferIndex >= 0) {
                 ByteBuffer byteBuffer = mEncoder.getInputBuffers()[inputBufferIndex];

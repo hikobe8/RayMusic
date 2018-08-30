@@ -1,5 +1,7 @@
 package com.ray;
 
+import com.ray.log.MyLog;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -16,8 +18,19 @@ public class TimeUtil {
      * @return hh:ss
      */
     public static String getMMssTime(long seconds) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("mm:ss", Locale.getDefault());
-        return simpleDateFormat.format(seconds*1000);
+        MyLog.e(seconds + " s");
+        //get seconds
+        int sec = (int) (seconds % 60);
+        int min = (int) (seconds/60);
+        return formatTimeString(min) + ":" + formatTimeString(sec);
+    }
+
+    public static String formatTimeString(int time){
+        if (time > 9) {
+            return String.valueOf(time);
+        } else {
+            return "0" + time;
+        }
     }
 
 }
