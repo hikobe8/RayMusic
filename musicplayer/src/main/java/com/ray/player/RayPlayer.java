@@ -274,8 +274,15 @@ public class RayPlayer {
             mMediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, 2);
             mMediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 96000);
             mMediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-            mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096);
+// java.lang.IllegalStateException native_dequeueOutputBuffer
+// mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096);
+            mMediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 12000);
             mEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+            if(mEncoder == null)
+            {
+                MyLog.d("create encoder wrong");
+                return;
+            }
             mInfo = new MediaCodec.BufferInfo();
             mEncoder.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mAACOutputStream = new FileOutputStream(outFile);
