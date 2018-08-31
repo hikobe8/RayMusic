@@ -140,10 +140,12 @@ void RayFFmpeg::start() {
     while (playStatus != NULL && !playStatus->exit) {
 
         if (playStatus->doSeek) {
+            av_usleep(1000*100);
             continue;
         }
 
-        if (rayAudio->packetQueue->getQueueSize() > 40){
+        if (rayAudio->packetQueue->getQueueSize() > 100){
+            av_usleep(1000*100);
             continue;
         }
 
@@ -165,6 +167,7 @@ void RayFFmpeg::start() {
             avPacket = NULL;
             while (playStatus != NULL && !playStatus->exit) {
                 if (rayAudio->packetQueue->getQueueSize() > 0) {
+                    av_usleep(1000*100);
                     continue;
                 } else{
                     playStatus->exit = true;

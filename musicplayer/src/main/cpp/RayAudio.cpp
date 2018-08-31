@@ -45,6 +45,7 @@ int RayAudio::resampleAudio(void **pcmBuff) {
                 playStatus->isLoading = true;
                 callJava->onLoad(CHILD_THREAD, true);
             }
+            av_usleep(1000*100);
             continue;
         } else {
             //加载完成
@@ -59,6 +60,7 @@ int RayAudio::resampleAudio(void **pcmBuff) {
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
+            av_usleep(1000*100);
             continue;
         }
         ret = avcodec_send_packet(avCodecContext, avPacket);
@@ -66,6 +68,7 @@ int RayAudio::resampleAudio(void **pcmBuff) {
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
+            av_usleep(1000*100);
             continue;
         }
         avFrame = av_frame_alloc();
