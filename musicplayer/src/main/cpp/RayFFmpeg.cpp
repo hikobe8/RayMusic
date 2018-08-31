@@ -144,7 +144,7 @@ void RayFFmpeg::start() {
             continue;
         }
 
-        if (rayAudio->packetQueue->getQueueSize() > 100){
+        if (rayAudio->packetQueue->getQueueSize() > 1){
             av_usleep(1000*100);
             continue;
         }
@@ -280,6 +280,7 @@ void RayFFmpeg::seek(int64_t seconds) {
             rayAudio->lastTime = 0;
             pthread_mutex_lock(&seek_mutex);
             int64_t real = seconds * AV_TIME_BASE;
+            avcodec_flush_buffers(rayAudio->avCodecContext);
             avformat_seek_file(avFormatContext, -1, INT64_MIN, real, INT64_MAX, 0);
             pthread_mutex_unlock(&seek_mutex);
             playStatus->doSeek = false;

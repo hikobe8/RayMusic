@@ -45,7 +45,7 @@ int RayAudio::resampleAudio(void **pcmBuff) {
                 playStatus->isLoading = true;
                 callJava->onLoad(CHILD_THREAD, true);
             }
-            av_usleep(1000*100);
+            av_usleep(1000 * 100);
             continue;
         } else {
             //加载完成
@@ -54,26 +54,28 @@ int RayAudio::resampleAudio(void **pcmBuff) {
                 callJava->onLoad(CHILD_THREAD, false);
             }
         }
-
-        avPacket = av_packet_alloc();
-        if (packetQueue->getPacket(avPacket) != 0) {
-            av_packet_free(&avPacket);
-            av_free(avPacket);
-            avPacket = NULL;
-            av_usleep(1000*100);
-            continue;
-        }
-        ret = avcodec_send_packet(avCodecContext, avPacket);
-        if (ret != 0) {
-            av_packet_free(&avPacket);
-            av_free(avPacket);
-            avPacket = NULL;
-            av_usleep(1000*100);
-            continue;
+        if (readFrameFinished) {
+            avPacket = av_packet_alloc();
+            if (packetQueue->getPacket(avPacket) != 0) {
+                av_packet_free(&avPacket);
+                av_free(avPacket);
+                avPacket = NULL;
+                av_usleep(1000 * 100);
+                continue;
+            }
+            ret = avcodec_send_packet(avCodecContext, avPacket);
+            if (ret != 0) {
+                av_packet_free(&avPacket);
+                av_free(avPacket);
+                avPacket = NULL;
+                av_usleep(1000 * 100);
+                continue;
+            }
         }
         avFrame = av_frame_alloc();
         ret = avcodec_receive_frame(avCodecContext, avFrame);
         if (ret == 0) {
+            readFrameFinished = false;
             if (avFrame->channels > 0 && avFrame->channel_layout == 0) {
                 avFrame->channel_layout = av_get_default_channel_layout(avFrame->channels);
             } else if (avFrame->channels == 0 && avFrame->channel_layout > 0) {
@@ -98,6 +100,7 @@ int RayAudio::resampleAudio(void **pcmBuff) {
                 av_free(avFrame);
                 avFrame = NULL;
                 swr_free(&swr_ctx);
+                readFrameFinished = true;
                 continue;
             }
             nb = swr_convert(swr_ctx,
@@ -116,15 +119,13 @@ int RayAudio::resampleAudio(void **pcmBuff) {
             }
             clock = now_time;
             *pcmBuff = buffer;
-            av_packet_free(&avPacket);
-            av_free(avPacket);
-            avPacket = NULL;
             av_frame_free(&avFrame);
             av_free(avFrame);
             avFrame = NULL;
             swr_free(&swr_ctx);
             break;
         } else {
+            readFrameFinished = true;
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -147,15 +148,17 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
             if (rayAudio->callJava != NULL) {
                 if (rayAudio->clock - rayAudio->lastTime > 0.1) {
                     rayAudio->lastTime = rayAudio->clock;
-                    rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+                    rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock,
+                                                      rayAudio->duration);
                 }
                 if (rayAudio->startRecord) {
-                    rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize*4, rayAudio->sampleBuffer);
+                    rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize * 4,
+                                                     rayAudio->sampleBuffer);
                 }
                 rayAudio->callJava->onDbValueChanged(CHILD_THREAD, rayAudio->getPcmDB(
-                        (char *)(rayAudio->sampleBuffer), dataSize * 4));
+                        (char *) (rayAudio->sampleBuffer), dataSize * 4));
             }
-            (*caller)->Enqueue(caller, (char *)rayAudio->sampleBuffer, dataSize*2*2);
+            (*caller)->Enqueue(caller, (char *) rayAudio->sampleBuffer, dataSize * 2 * 2);
         }
     }
 }
@@ -192,7 +195,8 @@ void RayAudio::initOpenSLES() {
     };
     SLDataSource dataSource = {&android_queue, &pcm};
     SLDataSink dataSink = {&outputMix, NULL};
-    const SLInterfaceID ids[4] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME,SL_IID_PLAYBACKRATE, SL_IID_MUTESOLO};
+    const SLInterfaceID ids[4] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_PLAYBACKRATE,
+                                  SL_IID_MUTESOLO};
     const SLboolean reqs[4] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
     (*slEngineItf)->CreateAudioPlayer(slEngineItf, &pcmPlayerObject, &dataSource, &dataSink, 4, ids,
                                       reqs);
@@ -320,7 +324,7 @@ void RayAudio::release() {
     }
 
     if (soundTouch != NULL) {
-        delete(soundTouch);
+        delete (soundTouch);
         soundTouch = NULL;
     }
 
@@ -413,7 +417,7 @@ int RayAudio::getSoundTouchData() {
         if (num == 0) {
             finished = true;
             continue;
-        } else{
+        } else {
             if (out_buffer == NULL) {
                 num = soundTouch->receiveSamples(sampleBuffer, data_size / 4);
                 if (num == 0) {
@@ -445,13 +449,13 @@ int RayAudio::getPcmDB(char *pcmData, size_t pcmSize) {
     int db = 0;
     short int perValue = 0;
     double sum = 0;
-    for (int i = 0; i < pcmSize; i+=2) {
-        memcpy(&perValue, pcmData+i, 2);
+    for (int i = 0; i < pcmSize; i += 2) {
+        memcpy(&perValue, pcmData + i, 2);
         sum += abs(perValue);
     }
-    sum = sum/(pcmSize/2);
+    sum = sum / (pcmSize / 2);
     if (sum > 0) {
-        db = (int)20.0 * log10(sum);
+        db = (int) 20.0 * log10(sum);
     }
     return db;
 }

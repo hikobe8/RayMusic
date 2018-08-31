@@ -200,7 +200,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         if (TEST_NET_SWITCH) {
-            mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//            mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+            mPlayer.setSource("http://138.128.206.175:8080/test.ape");
 //            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
         } else {
             mPlayer.setSource(Environment.getExternalStorageDirectory() + File.separator + TEST_FILE);
