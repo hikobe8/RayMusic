@@ -315,6 +315,20 @@ void RayAudio::release() {
         buffer = NULL;
     }
 
+    if (out_buffer != NULL) {
+        out_buffer = NULL;
+    }
+
+    if (soundTouch != NULL) {
+        delete(soundTouch);
+        soundTouch = NULL;
+    }
+
+    if (sampleBuffer != NULL) {
+        free(sampleBuffer);
+        sampleBuffer = NULL;
+    }
+
     if (avCodecContext != NULL) {
         avcodec_close(avCodecContext);
         avcodec_free_context(&avCodecContext);
