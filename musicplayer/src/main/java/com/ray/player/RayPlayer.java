@@ -11,6 +11,7 @@ import com.ray.listener.OnCompleteListener;
 import com.ray.listener.OnErrorListener;
 import com.ray.listener.OnLoadListener;
 import com.ray.listener.OnPauseResumeListener;
+import com.ray.listener.OnPcmCutInfoListener;
 import com.ray.listener.OnRecordTimeChangeListener;
 import com.ray.listener.PlayTimeListener;
 import com.ray.listener.PlayerPrepareListener;
@@ -50,6 +51,7 @@ public class RayPlayer {
     private OnCompleteListener mOnCompleteListener;
     private DbChangeListener mDbChangeListener;
     private OnRecordTimeChangeListener mOnRecordTimeChangeListener;
+    private OnPcmCutInfoListener mOnPcmCutInfoListener;
 
     private static TimeInfo sTimeInfo;
     private static boolean sPlayNext;
@@ -91,6 +93,10 @@ public class RayPlayer {
 
     public void setOnRecordTimeChangeListener(OnRecordTimeChangeListener onRecordTimeChangeListener) {
         mOnRecordTimeChangeListener = onRecordTimeChangeListener;
+    }
+
+    public void setOnPcmCutInfoListener(OnPcmCutInfoListener onPcmCutInfoListener) {
+        mOnPcmCutInfoListener = onPcmCutInfoListener;
     }
 
     public void setSource(String source) {
@@ -235,7 +241,12 @@ public class RayPlayer {
     }
 
     public void cutAudioPlay(int startTime, int endTime, boolean showPcm) {
-        native_cutAudioPlay(startTime, endTime, showPcm);
+        if (native_cutAudioPlay(startTime, endTime, showPcm)) {
+            start();
+        } else {
+            stop();
+            onErrorCall(2001, "cutaudio params is wrong");
+        }
     }
 
     public void onCallPrepared() {
@@ -284,6 +295,18 @@ public class RayPlayer {
     public void onDbValueChanged(int db) {
         if (mDbChangeListener != null) {
             mDbChangeListener.onDbChanged(db);
+        }
+    }
+
+    public void getPcmCutInfo(byte[] buffer, int size) {
+        if (mOnPcmCutInfoListener != null) {
+            mOnPcmCutInfoListener.getPcmCutInfo(buffer, size);
+        }
+    }
+
+    public void onGetSampleRate(int sampleRate){
+        if (mOnPcmCutInfoListener != null) {
+            mOnPcmCutInfoListener.onGetSampleRate(sampleRate, 16, 2);
         }
     }
 

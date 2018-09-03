@@ -163,11 +163,15 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
             }
             (*caller)->Enqueue(caller, (char *) rayAudio->sampleBuffer, dataSize * 2 * 2);
             if (rayAudio->isCut) {
+                if (rayAudio->showPcm) {
+                    if (rayAudio->callJava != NULL) {
+                        rayAudio->callJava->onGetPcmCutInfo(rayAudio->sampleBuffer, dataSize*4);
+                    }
+                }
                 if (rayAudio->clock > rayAudio->end_time) {
                     LOGI("裁剪结束");
+                    rayAudio->playStatus->exit = true;
                 }
-            } else{
-                rayAudio->playStatus->exit = true;
             }
         }
     }

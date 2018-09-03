@@ -4,7 +4,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.ray.listener.OnPcmCutInfoListener;
 import com.ray.listener.PlayerPrepareListener;
+import com.ray.log.MyLog;
 import com.ray.player.RayPlayer;
 
 public class CutAudioActivity extends AppCompatActivity {
@@ -19,7 +21,18 @@ public class CutAudioActivity extends AppCompatActivity {
         mRayPlayer.setPlayerPrepareListener(new PlayerPrepareListener() {
             @Override
             public void onPrepared() {
-                mRayPlayer.cutAudioPlay(10, 25, true);
+                mRayPlayer.cutAudioPlay(20, 40, true);
+            }
+        });
+        mRayPlayer.setOnPcmCutInfoListener(new OnPcmCutInfoListener() {
+            @Override
+            public void getPcmCutInfo(byte[] buffer, int bufferSize) {
+                MyLog.d("cut BufferSize : " + bufferSize);
+            }
+
+            @Override
+            public void onGetSampleRate(int sampleRate, int bit, int channel) {
+                MyLog.d("SampleRate : " + sampleRate + " bit : " + bit + " channel : " + channel);
             }
         });
     }

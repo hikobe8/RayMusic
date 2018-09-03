@@ -24,6 +24,8 @@ RayCallJava::RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj) {
     jMIDCallComplete = jniEnv->GetMethodID(jclz, "onCallComplete", "()V");
     jMIDCallDbValueChanged = jniEnv->GetMethodID(jclz, "onDbValueChanged", "(I)V");
     jMIDEncodePcm2Aac = jniEnv->GetMethodID(jclz, "encodePcm2Aac", "(I[B)V");
+    jMIDGetPcmCutInfo = jniEnv->GetMethodID(jclz, "getPcmCutInfo", "([BI)V");
+    jMIDGetPcmCutInfoSampleRate = jniEnv->GetMethodID(jclz, "onGetSampleRate", "(I)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -149,4 +151,31 @@ void RayCallJava::onCallRecord(int type, int size, void *buffer) {
         jniEnv->DeleteLocalRef(jBuffer);
         javaVM->DetachCurrentThread();
     }
+}
+
+void RayCallJava::onGetPcmCutInfo(void *buffer, int size) {
+    JNIEnv *jniEnv;
+    if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+        if (LOG_DEBUG) {
+            LOGE("get child thread jniEnv error!");
+        }
+        return;
+    }
+    jbyteArray jBuffer = jniEnv->NewByteArray(size);
+    jniEnv->SetByteArrayRegion(jBuffer, 0, size, static_cast<const jbyte *>(buffer));
+    jniEnv->CallVoidMethod(jobj, jMIDGetPcmCutInfo, jBuffer, size);
+    jniEnv->DeleteLocalRef(jBuffer);
+    javaVM->DetachCurrentThread();
+}
+
+void RayCallJava::onGetPcmCutInfoSampleRate(int sampleRate) {
+    JNIEnv *jniEnv;
+    if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+        if (LOG_DEBUG) {
+            LOGE("get child thread jniEnv error!");
+        }
+        return;
+    }
+    jniEnv->CallVoidMethod(jobj, jMIDGetPcmCutInfoSampleRate, sampleRate);
+    javaVM->DetachCurrentThread();
 }

@@ -71,6 +71,9 @@ void RayFFmpeg::decodeByFFmepg() {
                 rayAudio->duration = avFormatContext->duration / AV_TIME_BASE ;
                 rayAudio->time_base = avFormatContext->streams[i]->time_base;
                 this->duration = rayAudio->duration;
+                if (callJava != NULL) {
+                    callJava->onGetPcmCutInfoSampleRate(avFormatContext->streams[i]->codecpar->sample_rate);
+                }
             }
         }
     }
@@ -144,7 +147,7 @@ void RayFFmpeg::start() {
             continue;
         }
 
-        if (rayAudio->packetQueue->getQueueSize() > 1){
+        if (rayAudio->packetQueue->getQueueSize() > 40){
             av_usleep(1000*100);
             continue;
         }

@@ -25,6 +25,8 @@ public:
     jmethodID jMIDCallComplete;
     jmethodID jMIDCallDbValueChanged;
     jmethodID jMIDEncodePcm2Aac;
+    jmethodID jMIDGetPcmCutInfo;
+    jmethodID jMIDGetPcmCutInfoSampleRate;
 
 public:
     RayCallJava(JavaVM *javaVM, JNIEnv *env, jobject obj);
@@ -44,6 +46,10 @@ public:
     void onDbValueChanged(int type, int db);
 
     void onCallRecord(int type, int size, void* buffer);
+
+    void onGetPcmCutInfo(void* buffer, int size);
+
+    void onGetPcmCutInfoSampleRate(int sampleRate);
 };
 
 #endif //RAYMUSIC_RAYCALLJAVA_H
