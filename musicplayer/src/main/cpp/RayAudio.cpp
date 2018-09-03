@@ -18,6 +18,9 @@ RayAudio::RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_
     soundTouch->setPitch(1.0f);
     soundTouch->setTempo(1.5f);
     this->startRecord = false;
+    this->isCut = false;
+    this->end_time = 0;
+    this->showPcm = false;
 }
 
 RayAudio::~RayAudio() {
@@ -159,6 +162,13 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                         (char *) (rayAudio->sampleBuffer), dataSize * 4));
             }
             (*caller)->Enqueue(caller, (char *) rayAudio->sampleBuffer, dataSize * 2 * 2);
+            if (rayAudio->isCut) {
+                if (rayAudio->clock > rayAudio->end_time) {
+                    LOGI("裁剪结束");
+                }
+            } else{
+                rayAudio->playStatus->exit = true;
+            }
         }
     }
 }

@@ -65,6 +65,9 @@ public:
     int num;
     bool startRecord;
     bool readFrameFinished = true;
+    bool isCut;
+    int end_time;
+    bool showPcm;
 
 public:
     RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_rate);

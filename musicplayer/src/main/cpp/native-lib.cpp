@@ -168,4 +168,14 @@ Java_com_ray_player_RayPlayer_native_1startStopRecord(JNIEnv *env, jobject insta
         rayFFmpeg->startStopRecord(start);
     }
 
+}extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_ray_player_RayPlayer_native_1cutAudioPlay(JNIEnv *env, jobject instance, jint startTime,
+                                                   jint endTime, jboolean showPcm) {
+
+    if (rayFFmpeg != NULL) {
+        return rayFFmpeg->cutAudioPlay(startTime, endTime, showPcm);
+    }
+    return false;
+
 }

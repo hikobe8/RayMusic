@@ -324,3 +324,16 @@ void RayFFmpeg::startStopRecord(bool start) {
         rayAudio->startStopRecord(start);
     }
 }
+
+bool RayFFmpeg::cutAudioPlay(int start_time, int end_time, bool showPcm) {
+    if (start_time >= 0 && end_time < duration && start_time < end_time) {
+        if (rayAudio != NULL) {
+            rayAudio->isCut = true;
+            rayAudio->end_time = end_time;
+            rayAudio->showPcm = showPcm;
+            seek(start_time);
+            return true;
+        }
+    }
+    return false;
+}

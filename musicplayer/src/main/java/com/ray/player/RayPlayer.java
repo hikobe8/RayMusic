@@ -234,6 +234,10 @@ public class RayPlayer {
         mAACOutputStream = null;
     }
 
+    public void cutAudioPlay(int startTime, int endTime, boolean showPcm) {
+        native_cutAudioPlay(startTime, endTime, showPcm);
+    }
+
     public void onCallPrepared() {
         if (mPlayerPrepareListener != null)
             mPlayerPrepareListener.onPrepared();
@@ -308,6 +312,8 @@ public class RayPlayer {
     private native int native_getSampleRate();
 
     private native void native_startStopRecord(boolean start);
+
+    private native boolean native_cutAudioPlay(int startTime, int endTime, boolean showPcm);
 
     //MediaCodec
     private MediaFormat mMediaFormat;
@@ -450,5 +456,4 @@ public class RayPlayer {
         }
         return rate;
     }
-
 }
