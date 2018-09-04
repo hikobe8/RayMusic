@@ -34,9 +34,62 @@ void *resampleRunnable(void *data) {
     pthread_exit(&audio->play_thread);
 }
 
+void *pcmBufferRunnable(void *data) {
+    RayAudio *rayAudio = static_cast<RayAudio *>(data);
+    while (rayAudio->playStatus != NULL && !rayAudio->playStatus->exit) {
+        RayPcmBean * pcmBean = NULL;
+        rayAudio->rayBufferQueue->getBuffer(&pcmBean);
+        if (pcmBean == NULL) {
+            continue;
+        }
+        if (pcmBean->buffer_size <= rayAudio->default_buffer_size) {
+            //不用分包
+            if (rayAudio->callJava != NULL) {
+                if (rayAudio->startRecord) {
+                    rayAudio->callJava->onCallRecord(CHILD_THREAD, pcmBean->buffer_size, pcmBean->buffer);
+                }
+                if (rayAudio->showPcm) {
+                    rayAudio->callJava->onGetPcmCutInfo(pcmBean->buffer, pcmBean->buffer_size);
+                }
+            }
+        } else {
+            int pack_num = pcmBean->buffer_size / rayAudio->default_buffer_size;
+            int pack_sub = pcmBean->buffer_size % rayAudio->default_buffer_size;
+            for (int i = 0; i < pack_num; ++i) {
+                char* tmpBuffer = static_cast<char *>(malloc(rayAudio->default_buffer_size));
+                memcpy(tmpBuffer, pcmBean->buffer + i * rayAudio->default_buffer_size, rayAudio->default_buffer_size);
+                if (rayAudio->callJava != NULL) {
+                if (rayAudio->startRecord) {
+                    rayAudio->callJava->onCallRecord(CHILD_THREAD, rayAudio->default_buffer_size, tmpBuffer);
+                }
+                if (rayAudio->showPcm) {
+                        rayAudio->callJava->onGetPcmCutInfo(tmpBuffer, rayAudio->default_buffer_size);
+                    }
+                }
+            }
+            if (pack_sub > 0) {
+                char* tmpBuffer = static_cast<char *>(malloc(pack_sub));
+                memcpy(tmpBuffer, pcmBean->buffer + pack_num * rayAudio->default_buffer_size, pack_sub);
+                if (rayAudio->callJava != NULL) {
+                    if (rayAudio->startRecord) {
+                        rayAudio->callJava->onCallRecord(CHILD_THREAD, rayAudio->default_buffer_size, tmpBuffer);
+                    }
+                    if (rayAudio->showPcm) {
+                        rayAudio->callJava->onGetPcmCutInfo(tmpBuffer, rayAudio->default_buffer_size);
+                    }
+                }
+            }
+        }
+        delete(pcmBean);
+        pcmBean = NULL;
+    }
+    pthread_exit(&rayAudio->pcmBufferThread);
+}
 
 void RayAudio::play() {
+    rayBufferQueue = new RayBufferQueue(playStatus);
     pthread_create(&play_thread, NULL, resampleRunnable, this);
+    pthread_create(&pcmBufferThread, NULL, pcmBufferRunnable, this);
 }
 
 int RayAudio::resampleAudio(void **pcmBuff) {
@@ -154,20 +207,12 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                     rayAudio->callJava->onTimeChanged(CHILD_THREAD, rayAudio->clock,
                                                       rayAudio->duration);
                 }
-                if (rayAudio->startRecord) {
-                    rayAudio->callJava->onCallRecord(CHILD_THREAD, dataSize * 4,
-                                                     rayAudio->sampleBuffer);
-                }
                 rayAudio->callJava->onDbValueChanged(CHILD_THREAD, rayAudio->getPcmDB(
                         (char *) (rayAudio->sampleBuffer), dataSize * 4));
             }
+            rayAudio->rayBufferQueue->putBuffer(rayAudio->sampleBuffer, dataSize*4);
             (*caller)->Enqueue(caller, (char *) rayAudio->sampleBuffer, dataSize * 2 * 2);
             if (rayAudio->isCut) {
-                if (rayAudio->showPcm) {
-                    if (rayAudio->callJava != NULL) {
-                        rayAudio->callJava->onGetPcmCutInfo(rayAudio->sampleBuffer, dataSize*4);
-                    }
-                }
                 if (rayAudio->clock > rayAudio->end_time) {
                     LOGI("裁剪结束");
                     rayAudio->playStatus->exit = true;
@@ -307,6 +352,13 @@ void RayAudio::release() {
     if (packetQueue != NULL) {
         delete (packetQueue);
         packetQueue = NULL;
+    }
+    if (rayBufferQueue != NULL) {
+        rayBufferQueue->notifyThread();
+        pthread_join(pcmBufferThread, NULL);
+        rayBufferQueue->release();
+        delete(rayBufferQueue);
+        rayBufferQueue = NULL;
     }
 
     if (pcmPlayerObject != NULL) {

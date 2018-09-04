@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         });
         if (TEST_NET_SWITCH) {
 //            mPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-            mPlayer.setSource("http://138.128.206.175:8080/test.ape");
+            mPlayer.setSource("http://isure.stream.qqmusic.qq.com/C400003Uv92W13ZmTB.m4a?vkey=971655D281BC37E0B2AF8A67071E718A7B38C88F70A2ED9C317EAB8A814418A85D49036A1862A71ECF6B8B9FF88643F64C77A7AC9A9DC479&guid=6622144768&uin=0&fromtag=66");
 //            mPlayer.setSource("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
         } else {
             mPlayer.setSource(Environment.getExternalStorageDirectory() + File.separator + TEST_FILE);
@@ -233,7 +233,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void next(View view) {
-        mPlayer.playNext("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
+        mPlayer.playNext("http://138.128.206.175:8080/test.ape");
+//        mPlayer.playNext("http://live.hkstv.hk.lxdns.com/live/hks/playlist.m3u8");
     }
 
     public void leftClick(View view) {

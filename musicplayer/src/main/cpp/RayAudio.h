@@ -8,6 +8,7 @@
 #include "RayQueue.h"
 #include "RayCallJava.h"
 #include "SoundTouch.h"
+#include "RayBufferQueue.h"
 
 
 using namespace soundtouch;
@@ -68,6 +69,9 @@ public:
     bool isCut;
     int end_time;
     bool showPcm;
+    pthread_t pcmBufferThread;
+    RayBufferQueue *rayBufferQueue;
+    int default_buffer_size = 4096;
 
 public:
     RayAudio(RayCallJava *callJava, RayPlayStatus *playStatus, int sample_rate);
