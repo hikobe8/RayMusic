@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">RayMusic</string>
-    <string name="play_time">%s/%s</string>
+    <string name="app_name">app</string>
 </resources>

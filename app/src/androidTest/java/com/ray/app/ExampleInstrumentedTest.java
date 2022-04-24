@@ -1,4 +1,4 @@
-package com.ray.musicplayer;
+package com.ray.app;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -20,6 +20,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.ray.musicplayer.test", appContext.getPackageName());
+        assertEquals("com.ray.app", appContext.getPackageName());
     }
 }
