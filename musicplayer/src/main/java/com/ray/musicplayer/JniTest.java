@@ -14,4 +14,6 @@ public class JniTest {
 
     public native String stringFromJNI();
 
+    public native void checkFFMPEG();
+
 }

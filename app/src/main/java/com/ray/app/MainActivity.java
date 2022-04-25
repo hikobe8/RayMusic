@@ -13,5 +13,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ((TextView)findViewById(R.id.tv)).setText(new JniTest().stringFromJNI());
+        new JniTest().checkFFMPEG();
     }
 }

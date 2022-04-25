@@ -12,6 +12,12 @@ extern "C" JNIEXPORT jstring JNICALL
 Java_com_ray_musicplayer_JniTest_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
+    std::string hello = "Hello, FFMPEG";
+    return env->NewStringUTF(hello.c_str());
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_JniTest_checkFFMPEG(JNIEnv *env, jobject thiz) {
     av_register_all();
     AVCodec *c_temp = av_codec_next(NULL);
     while (c_temp != NULL) {
@@ -28,7 +34,4 @@ Java_com_ray_musicplayer_JniTest_stringFromJNI(
         }
         c_temp = c_temp->next;
     }
-
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
 }
