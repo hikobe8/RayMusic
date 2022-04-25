@@ -1,2 +1,3 @@
+include ':cppthread'
 include ':app'
 include(":musicplayer")
