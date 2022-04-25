@@ -9,19 +9,50 @@ cmake_minimum_required(VERSION 3.10.2)
 
 project("raymusic")
 
+#include ffmpeg *.h files
+include_directories(src/main/cpp/include)
+
+add_library(avcodec-57 SHARED IMPORTED)
+add_library(avformat-57 SHARED IMPORTED)
+add_library(avutil-55 SHARED IMPORTED)
+add_library(swresample-2 SHARED IMPORTED)
+add_library(swscale-4 SHARED IMPORTED)
+
+set_target_properties(avcodec-57
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/libs/${ANDROID_ABI}/libavcodec-57.so)
+set_target_properties(avformat-57
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/libs/${ANDROID_ABI}/libavformat-57.so)
+set_target_properties(avutil-55
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/libs/${ANDROID_ABI}/libavutil-55.so)
+set_target_properties(swresample-2
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/libs/${ANDROID_ABI}/libswresample-2.so)
+set_target_properties(swscale-4
+        PROPERTIES
+        IMPORTED_LOCATION
+        ${CMAKE_SOURCE_DIR}/src/main/libs/${ANDROID_ABI}/libswscale-4.so)
+
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             native-lib
+        native-lib
 
-             # Sets the library as a shared library.
-             SHARED
+        # Sets the library as a shared library.
+        SHARED
 
-             # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+        # Provides a relative path to your source file(s).
+        src/main/cpp/native-lib.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -30,19 +61,23 @@ add_library( # Sets the name of the library.
 # completing its build.
 
 find_library( # Sets the name of the path variable.
-              log-lib
+        log-lib
 
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log)
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+        native-lib
+        avcodec-57
+        avformat-57
+        avutil-55
+        swresample-2
+        swscale-4
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib})
