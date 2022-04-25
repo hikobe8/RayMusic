@@ -9,8 +9,13 @@
 
     <Button
         android:onClick="createNormalPThread"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="创建普通PThread" />
+    <Button
+        android:onClick="producerConsumer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="C++实现生产者消费者模型" />
 
 </LinearLayout>

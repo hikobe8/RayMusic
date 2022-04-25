@@ -8,4 +8,9 @@ public class PThreadDemo {
 
     public native void createNormalThread();
 
+    /**
+     * C++ 实现生产者消费者模型
+     */
+    public native void producerConsumerModel();
+
 }

@@ -18,4 +18,8 @@ public class MainActivity extends AppCompatActivity {
     public void createNormalPThread(View view) {
         pThreadDemo.createNormalThread();
     }
+
+    public void producerConsumer(View view) {
+        pThreadDemo.producerConsumerModel();
+    }
 }
