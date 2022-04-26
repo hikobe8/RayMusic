@@ -3,6 +3,7 @@ package com.ray.cppthread;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -15,8 +16,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        pThreadDemo.setJavaCallback((code, msg) ->
-                Toast.makeText(this, "code = " + code + " msg = " + msg, Toast.LENGTH_SHORT).show());
+        pThreadDemo.setJavaCallback((code, msg) -> {
+            Toast.makeText(this, "code = " + code + " msg = " + msg, Toast.LENGTH_SHORT).show();
+        });
     }
 
     public void createNormalPThread(View view) {
@@ -30,5 +32,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void cppCallJavaMainThread(View view) {
         pThreadDemo.cppCallJavaMainThread();
+    }
+
+    public void cppCallJavaChildThread(View view) {
+        pThreadDemo.cppCallJavaChildThread();
     }
 }

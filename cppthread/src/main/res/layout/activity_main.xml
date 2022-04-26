@@ -24,4 +24,10 @@
         android:layout_height="wrap_content"
         android:text="C++回调Java方法(主线程)" />
 
+    <Button
+        android:onClick="cppCallJavaChildThread"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="C++回调Java方法(子线程)" />
+
 </LinearLayout>

@@ -21,7 +21,11 @@ JavaListener::JavaListener(_JavaVM *vm, _JNIEnv *env, jobject obj) {
 
 void JavaListener::onNext(int type, int code, const char *msg) {
     if (type == 0) {
-
+        jvm->AttachCurrentThread(&jenv, NULL);
+        jstring jmsg = jenv->NewStringUTF(msg);
+        jenv->CallVoidMethod(jobj, jmId, code, jmsg);
+        jenv->DeleteLocalRef(jmsg);
+        jvm->DetachCurrentThread();
     } else {
         jstring jmsg = jenv->NewStringUTF(msg);
         jenv->CallVoidMethod(jobj, jmId, code, jmsg);

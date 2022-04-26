@@ -96,3 +96,19 @@ Java_com_ray_cppthread_PThreadDemo_cppCallJavaMainThread(JNIEnv *env, jobject th
     javaListener->onNext(1, 0, "C++在主线程回调Java方法");
     env->DeleteGlobalRef(gobj);
 }
+
+pthread_t childThread;
+
+void *childThreadRunnable(void * attr) {
+    JavaListener* listener = (JavaListener *)(attr);
+    listener->onNext(0, 1, "C++在子线程线程回调Java方法");
+    pthread_exit(&childThread);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_cppthread_PThreadDemo_cppCallJavaChildThread(JNIEnv *env, jobject thiz) {
+    jobject gobj = env->NewGlobalRef(thiz);
+    javaListener = new JavaListener(jvm, env, gobj);
+    pthread_create(&childThread, NULL, childThreadRunnable, javaListener);
+}

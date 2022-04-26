@@ -1,6 +1,8 @@
 package com.ray.cppthread;
 
-import androidx.annotation.Keep;
+import android.os.Handler;
+import android.os.Looper;
+
 
 public class PThreadDemo {
 
@@ -9,6 +11,8 @@ public class PThreadDemo {
     }
 
     IJavaCallback iJavaCallback;
+
+    private Handler mH = new Handler(Looper.getMainLooper());
 
     public void setJavaCallback(IJavaCallback iJavaCallback) {
         this.iJavaCallback = iJavaCallback;
@@ -30,9 +34,19 @@ public class PThreadDemo {
      */
     public native void cppCallJavaMainThread();
 
+    /**
+     * C++回调Java方法(子线程)
+     */
+    public native void cppCallJavaChildThread();
+
     public void onNext(int code, String msg) {
-        if (null != iJavaCallback)
-            iJavaCallback.onNext(code, msg);
+        if (null != iJavaCallback) {
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                iJavaCallback.onNext(code, msg);
+            } else {
+                mH.post(() -> iJavaCallback.onNext(code, msg));
+            }
+        }
     }
 
 }
