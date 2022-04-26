@@ -18,4 +18,10 @@
         android:layout_height="wrap_content"
         android:text="C++实现生产者消费者模型" />
 
+    <Button
+        android:onClick="cppCallJavaMainThread"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="C++回调Java方法(主线程)" />
+
 </LinearLayout>
