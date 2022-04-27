@@ -8,6 +8,7 @@
 #include "RayCallJava.h"
 #include "pthread.h"
 #include "androidlog.h"
+#include "RayAudio.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -17,8 +18,11 @@ class RayFFmpeg {
 public:
     RayCallJava *callJava;
     const char *url;
+    pthread_t prepareThread;
     pthread_t decodeThread;
     AVFormatContext *avFormatContext;
+    RayAudio* rayAudio;
+
 public:
     RayFFmpeg(RayCallJava *rayCallJava, const char *url);
 
@@ -27,6 +31,8 @@ public:
     void prepare();
 
     void prepareActual();
+
+    void start();
 };
 
 

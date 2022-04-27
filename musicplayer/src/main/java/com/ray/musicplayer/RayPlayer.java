@@ -13,10 +13,11 @@ public class RayPlayer {
         System.loadLibrary("swscale-4");
     }
 
-    public native void prepare(String url);
+    public native void native_prepare(String url);
 
     public void onPreparedFromJni() {
         Log.i("hikobe8", "player prepared!");
     }
 
+    public native void naive_start();
 }

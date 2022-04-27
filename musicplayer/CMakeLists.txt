@@ -55,6 +55,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/native-lib.cpp
         src/main/cpp/RayCallJava.cpp
         src/main/cpp/RayFFmpeg.cpp
+        src/main/cpp/RayAudio.cpp
         )
 
 # Searches for a specified prebuilt library and stores the path as a
