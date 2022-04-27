@@ -3,6 +3,7 @@
 //
 
 #include "jni.h"
+#include <string>
 #ifndef RAYMUSIC_JAVALISTENER_H
 #define RAYMUSIC_JAVALISTENER_H
 
