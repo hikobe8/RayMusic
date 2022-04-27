@@ -1,6 +1,8 @@
 package com.ray.musicplayer;
 
-public class JniTest {
+import android.util.Log;
+
+public class RayPlayer {
 
     static {
         System.loadLibrary("native-lib");
@@ -11,9 +13,10 @@ public class JniTest {
         System.loadLibrary("swscale-4");
     }
 
+    public native void prepare(String url);
 
-    public native String stringFromJNI();
-
-    public native void checkFFMPEG();
+    public void onPreparedFromJni() {
+        Log.i("hikobe8", "player prepared!");
+    }
 
 }
