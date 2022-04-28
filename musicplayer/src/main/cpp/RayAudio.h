@@ -5,6 +5,9 @@
 #ifndef RAYMUSIC_RAYAUDIO_H
 #define RAYMUSIC_RAYAUDIO_H
 
+#include "PlayStatus.h"
+#include "RayQueue.h"
+
 extern "C"{
 #include "libavformat//avformat.h"
 };
@@ -14,9 +17,11 @@ class RayAudio {
 public:
     int streamIndex;
     AVCodecParameters* codecParameters;
+    PlayStatus* playStatus;
+    RayQueue* queue;
 
 public:
-    RayAudio(int index, AVCodecParameters* codecP);
+    RayAudio(int index, AVCodecParameters* codecP, PlayStatus* status);
     ~RayAudio();
 };
 

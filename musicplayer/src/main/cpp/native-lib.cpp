@@ -5,6 +5,7 @@
 
 JavaVM *javaVm;
 RayFFmpeg *rayFFmpeg;
+PlayStatus *playStatus;
 
 
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -21,7 +22,8 @@ Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, js
     if (NULL == rayFFmpeg) {
         const char *realUrl = env->GetStringUTFChars(url, 0);
         RayCallJava *rayCallJava = new RayCallJava(javaVm, env, thiz);
-        rayFFmpeg = new RayFFmpeg(rayCallJava, realUrl);
+        playStatus = new PlayStatus();
+        rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, realUrl);
     }
     rayFFmpeg->prepare();
 }

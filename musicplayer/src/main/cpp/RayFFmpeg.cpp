@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include "RayFFmpeg.h"
 
-RayFFmpeg::RayFFmpeg(RayCallJava *rayCallJava, const char *url) {
+RayFFmpeg::RayFFmpeg(PlayStatus *status, RayCallJava *rayCallJava, const char *url) {
+    playStatus = status;
     callJava = rayCallJava;
     this->url = url;
 }
@@ -41,7 +42,7 @@ void RayFFmpeg::prepareActual() {
     for (int i = 0; i < avFormatContext->nb_streams; ++i) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             LOGI("获取到音频流 %d", i)
-            rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar);
+            rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus);
         }
     }
     //获取解码器
@@ -79,9 +80,11 @@ void *decodeActual(void *data) {
                 if (avPacket->stream_index == rayFFmpeg->rayAudio->streamIndex) {
                     count++;
                     LOGI("解码到第%d帧", count)
+                    rayFFmpeg->rayAudio->queue->putAVPacket(avPacket);
+                } else {
+                    av_packet_free(&avPacket);
+                    av_free(avPacket);
                 }
-                av_packet_free(&avPacket);
-                av_free(avPacket);
             } else {
                 LOGI("decode finished!")
                 av_packet_free(&avPacket);
@@ -90,6 +93,15 @@ void *decodeActual(void *data) {
                 break;
             }
         }
+        //模拟出队列
+        while (rayFFmpeg->rayAudio->queue->getQueueSize() > 0) {
+            AVPacket *packet = av_packet_alloc();
+            rayFFmpeg->rayAudio->queue->getAVPacket(packet);
+            av_packet_free(&packet);
+            av_free(packet);
+            packet = NULL;
+        }
+        LOGI("出队列完成!")
     }
     pthread_exit(&rayFFmpeg->decodeThread);
 }
