@@ -17,7 +17,8 @@ public class RayPlayer {
 
     public void onPreparedFromJni() {
         Log.i("hikobe8", "player prepared!");
+        native_start();
     }
 
-    public native void naive_start();
+    public native void native_start();
 }

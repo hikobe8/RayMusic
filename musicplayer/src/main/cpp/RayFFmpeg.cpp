@@ -51,16 +51,16 @@ void RayFFmpeg::prepareActual() {
         LOGE("获取音频解码器失败!");
         return;
     }
-    AVCodecContext *decContext = avcodec_alloc_context3(dec);
-    if (!decContext) {
+    rayAudio->avCodecContext = avcodec_alloc_context3(dec);
+    if (!rayAudio->avCodecContext) {
         LOGE("avcodec_alloc_context3 failed!");
         return;
     }
-    if (avcodec_parameters_to_context(decContext, rayAudio->codecParameters) < 0) {
+    if (avcodec_parameters_to_context(rayAudio->avCodecContext, rayAudio->codecParameters) < 0) {
         LOGE("avcodec_parameters_to_context failed!");
         return;
     }
-    if (avcodec_open2(decContext, dec, NULL) != 0) {
+    if (avcodec_open2(rayAudio->avCodecContext, dec, NULL) != 0) {
         LOGE("open stream failed!");
         return;
     }
@@ -72,8 +72,9 @@ void *decodeActual(void *data) {
     if (NULL == rayFFmpeg->rayAudio) {
         LOGE("prepare method not called!")
     } else {
+        rayFFmpeg->rayAudio->play();
         int count = 0;
-        while (1) {
+        while (NULL != rayFFmpeg->playStatus && !rayFFmpeg->playStatus->exit) {
             AVPacket *avPacket = av_packet_alloc();
             if (av_read_frame(rayFFmpeg->avFormatContext, avPacket) == 0) {
                 //读取到一帧数据
@@ -86,22 +87,19 @@ void *decodeActual(void *data) {
                     av_free(avPacket);
                 }
             } else {
-                LOGI("decode finished!")
                 av_packet_free(&avPacket);
                 av_free(avPacket);
-                //读取完成
-                break;
+                while (NULL != rayFFmpeg->playStatus && !rayFFmpeg->playStatus->exit) {
+                    if (rayFFmpeg->rayAudio->queue->getQueueSize() > 0) {
+                        continue;
+                    } else {
+                        LOGI("decode finished!")
+                        rayFFmpeg->playStatus->exit = true;
+                        break;
+                    }
+                }
             }
         }
-        //模拟出队列
-        while (rayFFmpeg->rayAudio->queue->getQueueSize() > 0) {
-            AVPacket *packet = av_packet_alloc();
-            rayFFmpeg->rayAudio->queue->getAVPacket(packet);
-            av_packet_free(&packet);
-            av_free(packet);
-            packet = NULL;
-        }
-        LOGI("出队列完成!")
     }
     pthread_exit(&rayFFmpeg->decodeThread);
 }

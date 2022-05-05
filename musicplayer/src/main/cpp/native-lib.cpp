@@ -30,7 +30,7 @@ Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, js
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_ray_musicplayer_RayPlayer_naive_1start(JNIEnv *env, jobject thiz) {
+Java_com_ray_musicplayer_RayPlayer_native_1start(JNIEnv *env, jobject thiz) {
     if (NULL != rayFFmpeg) {
         rayFFmpeg->start();
     }

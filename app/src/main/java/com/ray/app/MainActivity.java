@@ -18,11 +18,7 @@ public class MainActivity extends AppCompatActivity {
         rayPlayer = new RayPlayer();
     }
 
-    public void prepare(View view) {
-        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-    }
-
     public void start(View view) {
-        rayPlayer.naive_start();
+        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
     }
 }
