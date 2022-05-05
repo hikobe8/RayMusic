@@ -1,3 +1,4 @@
 include ':cppthread'
 include ':app'
 include(":musicplayer")
+include ':openslesdemo'
