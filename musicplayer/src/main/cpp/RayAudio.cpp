@@ -10,6 +10,7 @@ RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status) {
     playStatus = status;
     queue = new RayQueue(playStatus);
     buffer = (uint8_t *) (av_malloc(44100 * 2 * 2));
+    sampleRate = codecP->sample_rate;
 }
 
 RayAudio::~RayAudio() {
@@ -18,7 +19,7 @@ RayAudio::~RayAudio() {
 
 void *playRunnable(void *data) {
     RayAudio *audio = (RayAudio *) data;
-    audio->resampleAudio();
+    audio->initOpenSLES();
     pthread_exit(&audio->threadPlay);
 }
 
@@ -85,6 +86,7 @@ int RayAudio::resampleAudio() {
             freeAvPacket();
             freeAvFrame();
             swr_free(&swrContext);
+            break;
         } else {
             freeAvPacket();
             freeAvFrame();
@@ -105,4 +107,110 @@ void RayAudio::freeAvPacket() {
     av_packet_free(&avPacket);
     av_free(avPacket);
     avPacket = NULL;
+}
+
+void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
+                       void *pContext) {
+    RayAudio *rayAudio = (RayAudio *) pContext;
+    int size = rayAudio->resampleAudio();
+    if (size > 0) {
+        (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, size);
+    }
+}
+
+void RayAudio::initOpenSLES() {
+    //创建引擎对象
+    slCreateEngine(&engineObject, 0, 0, 0, 0, 0);
+    //Realize
+    (*engineObject)->Realize(engineObject, SL_BOOLEAN_FALSE);
+    //创建引擎实例对象
+    (*engineObject)->GetInterface(engineObject, SL_IID_ENGINE, &engineEngine);
+
+    const SLInterfaceID ids[1] = {SL_IID_ENVIRONMENTALREVERB};
+    const SLboolean req[1] = {SL_BOOLEAN_FALSE};
+    //创建混音器对象
+    (*engineEngine)->CreateOutputMix(engineEngine, &outputMixObject, 1, ids, req);
+    //Realize
+    (*outputMixObject)->Realize(outputMixObject, SL_BOOLEAN_FALSE);
+    //创建混音器实例对象
+    (*outputMixObject)->GetInterface(outputMixObject, SL_IID_ENVIRONMENTALREVERB,
+                                     &outputMixEnvironmentalReverb);
+    //设置参数
+    (*outputMixEnvironmentalReverb)->SetEnvironmentalReverbProperties(outputMixEnvironmentalReverb,
+                                                                      &reverbSettings);
+
+    // configure audio source
+    SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
+    SLDataFormat_PCM format_pcm = {SL_DATAFORMAT_PCM, 2,
+                                   (SLuint32) getCurrentSampleRateForOpensles(sampleRate),
+                                   SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16,
+                                   SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT,
+                                   SL_BYTEORDER_LITTLEENDIAN};
+    SLDataSource audioSrc = {&loc_bufq, &format_pcm};
+    // configure audio sink
+    SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
+    SLDataSink audioSnk = {&loc_outmix, NULL};
+    const SLInterfaceID audioIds[1] = {SL_IID_BUFFERQUEUE};
+    const SLboolean audioReqs[1] = {SL_BOOLEAN_TRUE};
+    //创建播放器对象
+    (*engineEngine)->CreateAudioPlayer(engineEngine, &pcmPlayerObject, &audioSrc, &audioSnk,
+                                       1, audioIds, audioReqs);
+    //realize
+    (*pcmPlayerObject)->Realize(pcmPlayerObject, SL_BOOLEAN_FALSE);
+    //创建播放器实例对象
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_PLAY, &pcmPlayer);
+    //创建缓冲区对象
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_BUFFERQUEUE, &pcmBufferQueue);
+    //缓冲区接口回调
+    (*pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
+    (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PLAYING);
+    pcmBufferCallback(pcmBufferQueue, this);
+}
+
+int RayAudio::getCurrentSampleRateForOpensles(int sampleRate) {
+    int rate = 0;
+    switch (sampleRate) {
+        case 8000:
+            rate = SL_SAMPLINGRATE_8;
+            break;
+        case 11025:
+            rate = SL_SAMPLINGRATE_11_025;
+            break;
+        case 12000:
+            rate = SL_SAMPLINGRATE_12;
+            break;
+        case 16000:
+            rate = SL_SAMPLINGRATE_16;
+            break;
+        case 22050:
+            rate = SL_SAMPLINGRATE_22_05;
+            break;
+        case 24000:
+            rate = SL_SAMPLINGRATE_24;
+            break;
+        case 32000:
+            rate = SL_SAMPLINGRATE_32;
+            break;
+        case 44100:
+            rate = SL_SAMPLINGRATE_44_1;
+            break;
+        case 48000:
+            rate = SL_SAMPLINGRATE_48;
+            break;
+        case 64000:
+            rate = SL_SAMPLINGRATE_64;
+            break;
+        case 88200:
+            rate = SL_SAMPLINGRATE_88_2;
+            break;
+        case 96000:
+            rate = SL_SAMPLINGRATE_96;
+            break;
+        case 192000:
+            rate = SL_SAMPLINGRATE_192;
+            break;
+        default:
+            rate = SL_SAMPLINGRATE_44_1;
+    }
+    return rate;
 }

@@ -7,6 +7,8 @@
 
 #include "PlayStatus.h"
 #include "RayQueue.h"
+#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -27,6 +29,19 @@ public:
     int ret = 0;
     uint8_t *buffer = NULL;
     int dataSize = 0;
+    int sampleRate = 0;
+
+    //OpenSLES
+    SLObjectItf engineObject = NULL;
+    SLEngineItf engineEngine = NULL;
+
+    SLObjectItf outputMixObject = NULL;
+    SLEnvironmentalReverbItf outputMixEnvironmentalReverb = NULL;
+    const SLEnvironmentalReverbSettings reverbSettings =
+            SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
+    SLObjectItf pcmPlayerObject = NULL;
+    SLPlayItf pcmPlayer = NULL;
+    SLAndroidSimpleBufferQueueItf pcmBufferQueue;
 
 public:
     RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status);
@@ -40,6 +55,10 @@ public:
     void freeAvPacket();
 
     void freeAvFrame();
+
+    void initOpenSLES();
+
+    int getCurrentSampleRateForOpensles(int sampleRate);
 };
 
 
