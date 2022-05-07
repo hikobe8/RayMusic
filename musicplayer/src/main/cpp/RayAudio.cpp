@@ -4,13 +4,15 @@
 
 #include "RayAudio.h"
 
-RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status) {
+RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status,
+                   RayCallJava *rayCallJava) {
     streamIndex = index;
     codecParameters = codecP;
     playStatus = status;
     queue = new RayQueue(playStatus);
     sampleRate = codecP->sample_rate;
     buffer = (uint8_t *) (av_malloc(sampleRate * 2 * 2));
+    callJava = rayCallJava;
 }
 
 RayAudio::~RayAudio() {
@@ -29,6 +31,18 @@ void RayAudio::play() {
 
 int RayAudio::resampleAudio() {
     while (NULL != playStatus && !playStatus->exit) {
+        if (queue->getQueueSize() == 0) {
+            //当前音频流队列没有数据，回调应用层为loading状态
+            if (!isLoading) {
+                isLoading = true;
+                callJava->onCallLoading(CHILD_THREAD, true);
+            }
+        } else {
+            if (isLoading) {
+                isLoading = false;
+                callJava->onCallLoading(CHILD_THREAD, false);
+            }
+        }
         avPacket = av_packet_alloc();
         if (queue->getAVPacket(avPacket) != 0) {
             freeAvPacket();
@@ -208,4 +222,18 @@ int RayAudio::getCurrentSampleRateForOpensles(int sampleRate) {
             rate = SL_SAMPLINGRATE_44_1;
     }
     return rate;
+}
+
+void RayAudio::pause() {
+    if (NULL != pcmPlayer) {
+        (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PAUSED);
+        callJava->onCallPause(MAIN_THREAD);
+    }
+}
+
+void RayAudio::resume() {
+    if (NULL != pcmPlayer) {
+        (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PLAYING);
+        callJava->onCallResume(MAIN_THREAD);
+    }
 }

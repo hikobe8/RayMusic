@@ -42,7 +42,7 @@ void RayFFmpeg::prepareActual() {
     for (int i = 0; i < avFormatContext->nb_streams; ++i) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             LOGI("获取到音频流 %d", i)
-            rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus);
+            rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus, callJava);
         }
     }
     //获取解码器
@@ -69,6 +69,7 @@ void RayFFmpeg::prepareActual() {
 
 void *decodeActual(void *data) {
     RayFFmpeg *rayFFmpeg = (RayFFmpeg *) (data);
+    rayFFmpeg->callJava->onCallLoading(CHILD_THREAD, true);
     if (NULL == rayFFmpeg->rayAudio) {
         LOGE("prepare method not called!")
     } else {
@@ -103,4 +104,16 @@ void *decodeActual(void *data) {
 
 void RayFFmpeg::start() {
     pthread_create(&decodeThread, NULL, decodeActual, this);
+}
+
+void RayFFmpeg::pause() {
+    if (NULL != rayAudio) {
+        rayAudio->pause();
+    }
+}
+
+void RayFFmpeg::resume() {
+    if (NULL != rayAudio) {
+        rayAudio->resume();
+    }
 }

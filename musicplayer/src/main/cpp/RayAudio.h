@@ -9,11 +9,12 @@
 #include "RayQueue.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+#include "RayCallJava.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
 #include "libswresample/swresample.h"
-};
+}
 
 class RayAudio {
 
@@ -30,6 +31,9 @@ public:
     uint8_t *buffer = NULL;
     int dataSize = 0;
     int sampleRate = 0;
+    bool isLoading = true;
+    RayCallJava *callJava;
+
 
     //OpenSLES
     SLObjectItf engineObject = NULL;
@@ -44,7 +48,7 @@ public:
     SLAndroidSimpleBufferQueueItf pcmBufferQueue;
 
 public:
-    RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status);
+    RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava* rayCallJava);
 
     ~RayAudio();
 
@@ -59,6 +63,10 @@ public:
     void initOpenSLES();
 
     int getCurrentSampleRateForOpensles(int sampleRate);
+
+    void pause();
+
+    void resume();
 };
 
 

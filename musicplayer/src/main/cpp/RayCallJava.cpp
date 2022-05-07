@@ -14,7 +14,10 @@ RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj) {
         LOGE("env->GetObjectClass error ");
         return;
     }
-    jmid = env->GetMethodID(clz, "onPreparedFromJni", "()V");
+    jmidOnPrepared = env->GetMethodID(clz, "onPreparedFromJni", "()V");
+    jmidOnLoading = env->GetMethodID(clz, "onLoadingFromJni", "(Z)V");
+    jmidOnPause = env->GetMethodID(clz, "onPausedFromNative", "()V");
+    jmidOnResume = env->GetMethodID(clz, "onResumeFromNative", "()V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -23,14 +26,56 @@ RayCallJava::~RayCallJava() {
 
 void RayCallJava::onCallPrepare(int type) {
     if (type == MAIN_THREAD) {
-        jniEnv->CallVoidMethod(jobj, jmid);
+        jniEnv->CallVoidMethod(jobj, jmidOnPrepared);
     } else {
         JNIEnv *jenv;
         if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
             LOGE("javaVm->AttachCurrentThread failed!");
             return;
         }
-        jenv->CallVoidMethod(jobj, jmid);
+        jenv->CallVoidMethod(jobj, jmidOnPrepared);
+        javaVm->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallLoading(int type, bool loading) {
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jmidOnLoading, loading);
+    } else {
+        JNIEnv *jenv;
+        if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
+            LOGE("javaVm->AttachCurrentThread failed!");
+            return;
+        }
+        jenv->CallVoidMethod(jobj, jmidOnLoading, loading);
+        javaVm->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallPause(int type) {
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jmidOnPause);
+    } else {
+        JNIEnv *jenv;
+        if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
+            LOGE("javaVm->AttachCurrentThread failed!");
+            return;
+        }
+        jenv->CallVoidMethod(jobj, jmidOnPause);
+        javaVm->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallResume(int type) {
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jmidOnResume);
+    } else {
+        JNIEnv *jenv;
+        if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
+            LOGE("javaVm->AttachCurrentThread failed!");
+            return;
+        }
+        jenv->CallVoidMethod(jobj, jmidOnResume);
         javaVm->DetachCurrentThread();
     }
 }

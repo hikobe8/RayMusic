@@ -35,6 +35,10 @@ public:
     void prepareActual();
 
     void start();
+
+    void pause();
+
+    void resume();
 };
 
 

@@ -35,3 +35,17 @@ Java_com_ray_musicplayer_RayPlayer_native_1start(JNIEnv *env, jobject thiz) {
         rayFFmpeg->start();
     }
 }
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1pause(JNIEnv *env, jobject thiz) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->pause();
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1resume(JNIEnv *env, jobject thiz) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->resume();
+    }
+}

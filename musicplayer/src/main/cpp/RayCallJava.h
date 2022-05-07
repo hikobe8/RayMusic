@@ -15,11 +15,17 @@ class RayCallJava {
     JavaVM *javaVm;
     JNIEnv *jniEnv;
     jobject jobj;
-    jmethodID jmid;
+    jmethodID jmidOnPrepared;
+    jmethodID jmidOnLoading;
+    jmethodID jmidOnPause;
+    jmethodID jmidOnResume;
 public:
     RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj);
     ~RayCallJava();
     void onCallPrepare(int type);
+    void onCallLoading(int type, bool loading);
+    void onCallPause(int type);
+    void onCallResume(int type);
 };
 
 

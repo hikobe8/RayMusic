@@ -15,4 +15,18 @@
         android:onClick="start"
         android:textAllCaps="false" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="pause"
+        android:onClick="pause"
+        android:textAllCaps="false" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="resume"
+        android:onClick="resume"
+        android:textAllCaps="false" />
+
 </LinearLayout>
