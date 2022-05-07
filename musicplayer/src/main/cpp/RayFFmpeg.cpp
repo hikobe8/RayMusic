@@ -73,14 +73,11 @@ void *decodeActual(void *data) {
         LOGE("prepare method not called!")
     } else {
         rayFFmpeg->rayAudio->play();
-        int count = 0;
         while (NULL != rayFFmpeg->playStatus && !rayFFmpeg->playStatus->exit) {
             AVPacket *avPacket = av_packet_alloc();
             if (av_read_frame(rayFFmpeg->avFormatContext, avPacket) == 0) {
                 //读取到一帧数据
                 if (avPacket->stream_index == rayFFmpeg->rayAudio->streamIndex) {
-                    count++;
-                    LOGI("解码到第%d帧", count)
                     rayFFmpeg->rayAudio->queue->putAVPacket(avPacket);
                 } else {
                     av_packet_free(&avPacket);

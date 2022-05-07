@@ -9,8 +9,8 @@ RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status) {
     codecParameters = codecP;
     playStatus = status;
     queue = new RayQueue(playStatus);
-    buffer = (uint8_t *) (av_malloc(44100 * 2 * 2));
     sampleRate = codecP->sample_rate;
+    buffer = (uint8_t *) (av_malloc(sampleRate * 2 * 2));
 }
 
 RayAudio::~RayAudio() {
@@ -26,8 +26,6 @@ void *playRunnable(void *data) {
 void RayAudio::play() {
     pthread_create(&threadPlay, NULL, playRunnable, this);
 }
-
-FILE *outFile = fopen("/sdcard/test.pcm", "w");
 
 int RayAudio::resampleAudio() {
     while (NULL != playStatus && !playStatus->exit) {
@@ -81,8 +79,6 @@ int RayAudio::resampleAudio() {
             int outChannels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             //获取一个frame大小
             dataSize = nb * outChannels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
-            fwrite(buffer, dataSize, 1, outFile);
-            LOGI("frame data size is %d", dataSize)
             freeAvPacket();
             freeAvFrame();
             swr_free(&swrContext);
@@ -93,7 +89,6 @@ int RayAudio::resampleAudio() {
             continue;
         }
     }
-    fclose(outFile);
     return dataSize;
 }
 

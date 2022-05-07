@@ -17,7 +17,6 @@ RayQueue::RayQueue(PlayStatus *status) {
 int RayQueue::putAVPacket(AVPacket *avPacket) {
     pthread_mutex_lock(&mutex);
     queue.push(avPacket);
-    LOGI("放入1个AVPacket进队列，总数为%d个", queue.size());
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mutex);
     return 0;
@@ -31,7 +30,6 @@ int RayQueue::getAVPacket(AVPacket *packet) {
             AVPacket *avPacket = queue.front();
             if (av_packet_ref(packet, avPacket) == 0) {
                 queue.pop();
-                LOGI("从队列取出1个AVPacket, 还剩余%d个", queue.size())
                 av_packet_free(&avPacket);
                 av_free(avPacket);
                 avPacket = NULL;
