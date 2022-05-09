@@ -6,6 +6,7 @@
 JavaVM *javaVm;
 RayFFmpeg *rayFFmpeg;
 PlayStatus *playStatus;
+RayCallJava *rayCallJava;
 
 
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -21,7 +22,7 @@ JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, jstring url) {
     if (NULL == rayFFmpeg) {
         const char *realUrl = env->GetStringUTFChars(url, 0);
-        RayCallJava *rayCallJava = new RayCallJava(javaVm, env, thiz);
+        rayCallJava = new RayCallJava(javaVm, env, thiz);
         playStatus = new PlayStatus();
         rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, realUrl);
     }
@@ -47,5 +48,23 @@ JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1resume(JNIEnv *env, jobject thiz) {
     if (NULL != rayFFmpeg) {
         rayFFmpeg->resume();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->release();
+        delete (rayFFmpeg);
+        rayFFmpeg = NULL;
+        if (NULL != rayCallJava) {
+            delete (rayCallJava);
+            rayCallJava = NULL;
+        }
+        if (NULL != playStatus) {
+            delete (playStatus);
+            playStatus = NULL;
+        }
     }
 }

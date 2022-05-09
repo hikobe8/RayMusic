@@ -127,7 +127,7 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) pContext;
     int size = rayAudio->resampleAudio();
-    rayAudio->clock += size /((double) rayAudio->sampleRate * 2 * 2);
+    rayAudio->clock += size / ((double) rayAudio->sampleRate * 2 * 2);
     if (rayAudio->clock - rayAudio->lastTime > 0.1) { //0.1秒回调一次
         rayAudio->lastTime = rayAudio->clock;
         rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
@@ -245,5 +245,57 @@ void RayAudio::resume() {
     if (NULL != pcmPlayer) {
         (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PLAYING);
         callJava->onCallResume(MAIN_THREAD);
+    }
+}
+
+void RayAudio::stop() {
+    if (NULL != pcmPlayer) {
+        (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_STOPPED);
+    }
+
+}
+
+void RayAudio::release() {
+    //停止播放
+    stop();
+    //删除AVPacket队列，释放内存
+    if (NULL != queue) {
+        delete (queue);
+        queue = NULL;
+    }
+    //清理PlayerObject, Player, PCM buffer queue对应的内存
+    if (NULL != pcmPlayerObject) {
+        (*pcmPlayerObject)->Destroy(pcmPlayerObject);
+        pcmPlayerObject = NULL;
+        pcmPlayer = NULL;
+        pcmBufferQueue = NULL;
+    }
+
+    //清理混音器对应的内存
+    if (NULL != outputMixObject) {
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject = NULL;
+        outputMixEnvironmentalReverb = NULL;
+    }
+    //清理引擎对应的内存
+    if (NULL != engineObject) {
+        (*engineObject)->Destroy(engineObject);
+        engineObject = NULL;
+        engineEngine = NULL;
+    }
+    if (NULL != buffer) {
+        free(buffer);
+        buffer = NULL;
+    }
+    if (NULL != avCodecContext) {
+        avcodec_close(avCodecContext);
+        avcodec_free_context(&avCodecContext);
+        avCodecContext = NULL;
+    }
+    if (NULL != callJava) {
+        callJava = NULL;
+    }
+    if (NULL != playStatus) {
+        playStatus = NULL;
     }
 }

@@ -5,7 +5,9 @@
 #include "RayQueue.h"
 
 RayQueue::~RayQueue() {
-
+    clearAVPacket();
+    pthread_mutex_destroy(&mutex);
+    pthread_cond_destroy(&cond);
 }
 
 RayQueue::RayQueue(PlayStatus *status) {
@@ -49,6 +51,19 @@ int RayQueue::getQueueSize() {
     size = queue.size();
     pthread_mutex_unlock(&mutex);
     return size;
+}
+
+void RayQueue::clearAVPacket() {
+    pthread_cond_signal(&cond);
+    pthread_mutex_lock(&mutex);
+    while (!queue.empty()) {
+        AVPacket* packet = queue.front();
+        queue.pop();
+        av_packet_free(&packet);
+        av_free(packet);
+        packet = NULL;
+    }
+    pthread_mutex_unlock(&mutex);
 }
 
 

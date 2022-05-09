@@ -59,4 +59,6 @@ public class RayPlayer {
     public native void native_pause();
 
     public native void native_resume();
+
+    public native void native_stop();
 }

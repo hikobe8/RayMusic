@@ -53,7 +53,8 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     }
 
     public void start(View view) {
-        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+        rayPlayer.native_prepare("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
     }
 
     @Override
@@ -91,5 +92,14 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     public void resume(View view) {
         rayPlayer.native_resume();
+    }
+
+    public void stop(View view) {
+        new Thread(){
+            @Override
+            public void run() {
+                rayPlayer.native_stop();
+            }
+        }.start();
     }
 }

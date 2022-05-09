@@ -13,7 +13,8 @@
 
 extern "C" {
 #include "libavformat/avformat.h"
-};
+#include <libavutil/time.h>
+}
 
 class RayFFmpeg {
 public:
@@ -24,6 +25,8 @@ public:
     AVFormatContext *avFormatContext;
     RayAudio *rayAudio;
     PlayStatus *playStatus;
+    pthread_mutex_t initMutex;
+    bool exit;
 
 public:
     RayFFmpeg(PlayStatus *status, RayCallJava *rayCallJava, const char *url);
@@ -39,6 +42,8 @@ public:
     void pause();
 
     void resume();
+
+    void release();
 };
 
 
