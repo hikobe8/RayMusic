@@ -18,6 +18,7 @@ RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj) {
     jmidOnLoading = env->GetMethodID(clz, "onLoadingFromJni", "(Z)V");
     jmidOnPause = env->GetMethodID(clz, "onPausedFromNative", "()V");
     jmidOnResume = env->GetMethodID(clz, "onResumeFromNative", "()V");
+    jmidOnProgressChange = env->GetMethodID(clz, "onPlayerTimeChangeFromNative", "(II)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -76,6 +77,20 @@ void RayCallJava::onCallResume(int type) {
             return;
         }
         jenv->CallVoidMethod(jobj, jmidOnResume);
+        javaVm->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallProgressChange(int type, int progress, int total) {
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jmidOnProgressChange, progress, total);
+    } else {
+        JNIEnv *jenv;
+        if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
+            LOGE("javaVm->AttachCurrentThread failed!");
+            return;
+        }
+        jenv->CallVoidMethod(jobj, jmidOnProgressChange, progress, total);
         javaVm->DetachCurrentThread();
     }
 }

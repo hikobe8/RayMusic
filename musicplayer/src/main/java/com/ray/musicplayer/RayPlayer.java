@@ -1,5 +1,7 @@
 package com.ray.musicplayer;
 
+import com.ray.bean.TimeInfo;
+
 public class RayPlayer {
 
     static {
@@ -29,20 +31,32 @@ public class RayPlayer {
         }
     }
 
-    public void onPausedFromNative(){
+    public void onPausedFromNative() {
         if (null != mPlayerListener) {
             mPlayerListener.onPlayerPause();
         }
     }
 
-    public void onResumeFromNative(){
+    public void onResumeFromNative() {
         if (null != mPlayerListener) {
             mPlayerListener.onPlayerResume();
         }
     }
 
+    public void onPlayerTimeChangeFromNative(int current, int total) {
+        if (null != mPlayerListener) {
+            TimeInfo timeInfo = new TimeInfo();
+            timeInfo.current = current;
+            timeInfo.total = total;
+            mPlayerListener.onPlayerTimeChange(timeInfo);
+        }
+    }
+
     public native void native_start();
+
     public native void native_prepare(String url);
+
     public native void native_pause();
+
     public native void native_resume();
 }

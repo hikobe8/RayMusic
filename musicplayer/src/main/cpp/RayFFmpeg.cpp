@@ -43,6 +43,8 @@ void RayFFmpeg::prepareActual() {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             LOGI("获取到音频流 %d", i)
             rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus, callJava);
+            rayAudio->duration = avFormatContext->duration / AV_TIME_BASE;
+            rayAudio->timeBase = avFormatContext->streams[i]->time_base;
         }
     }
     //获取解码器

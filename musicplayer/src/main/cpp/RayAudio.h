@@ -33,6 +33,11 @@ public:
     int sampleRate = 0;
     bool isLoading = true;
     RayCallJava *callJava;
+    int duration;
+    AVRational timeBase;
+    double nowTime; //当前frame时间
+    double clock; //当前播放进度时间
+    double lastTime; //用于控制时间进度回调，不用每一帧都回调时间进度
 
 
     //OpenSLES

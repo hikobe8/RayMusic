@@ -1,5 +1,7 @@
 package com.ray.musicplayer;
 
+import com.ray.bean.TimeInfo;
+
 /**
  * Author : Ray
  * Time : 2022/5/7 15:21
@@ -17,5 +19,7 @@ public interface PlayerListener {
      * @param loading true 正在加载音频数据
      */
     void onPlayerLoading(boolean loading);
+
+    void onPlayerTimeChange(TimeInfo timeInfo);
 
 }

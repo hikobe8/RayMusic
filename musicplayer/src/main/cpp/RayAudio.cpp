@@ -93,6 +93,11 @@ int RayAudio::resampleAudio() {
             int outChannels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             //获取一个frame大小
             dataSize = nb * outChannels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+            nowTime = avFrame->pts * av_q2d(timeBase);
+            if (nowTime < clock) { //pts 有可能为0
+                nowTime = clock;
+            }
+            clock = nowTime;
             freeAvPacket();
             freeAvFrame();
             swr_free(&swrContext);
@@ -122,6 +127,11 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) pContext;
     int size = rayAudio->resampleAudio();
+    rayAudio->clock += size /((double) rayAudio->sampleRate * 2 * 2);
+    if (rayAudio->clock - rayAudio->lastTime > 0.1) { //0.1秒回调一次
+        rayAudio->lastTime = rayAudio->clock;
+        rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+    }
     if (size > 0) {
         (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, size);
     }

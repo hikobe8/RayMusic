@@ -1,25 +1,48 @@
 package com.ray.app;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
+import android.widget.TextView;
 
+import com.ray.bean.TimeInfo;
 import com.ray.musicplayer.PlayerListener;
 import com.ray.musicplayer.RayLog;
 import com.ray.musicplayer.RayPlayer;
+import com.ray.util.TimeUtil;
 
 public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     RayPlayer rayPlayer;
+    private TextView tvProgress;
+    private TextView tvTotal;
+
+    Handler progressHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            super.handleMessage(msg);
+            if (1 == msg.what) {
+                TimeInfo timeInfo = (TimeInfo) msg.obj;
+                tvProgress.setText(TimeUtil.secondsToDateFormat(timeInfo.current, timeInfo.total));
+                tvTotal.setText(TimeUtil.secondsToDateFormat(timeInfo.total, timeInfo.total));
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        tvProgress = findViewById(R.id.tv_progress);
+        tvTotal = findViewById(R.id.tv_total);
         rayPlayer = new RayPlayer();
         rayPlayer.setPlayerListener(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -55,6 +78,11 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
         } else {
             RayLog.d("播放中...");
         }
+    }
+
+    @Override
+    public void onPlayerTimeChange(TimeInfo timeInfo) {
+        Message.obtain(progressHandler, 1, timeInfo).sendToTarget();
     }
 
     public void pause(View view) {

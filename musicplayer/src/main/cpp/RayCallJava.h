@@ -19,6 +19,7 @@ class RayCallJava {
     jmethodID jmidOnLoading;
     jmethodID jmidOnPause;
     jmethodID jmidOnResume;
+    jmethodID jmidOnProgressChange;
 public:
     RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj);
     ~RayCallJava();
@@ -26,6 +27,7 @@ public:
     void onCallLoading(int type, bool loading);
     void onCallPause(int type);
     void onCallResume(int type);
+    void onCallProgressChange(int type, int progress, int total);
 };
 
 
