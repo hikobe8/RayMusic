@@ -19,21 +19,21 @@ extern "C" {
 class RayAudio {
 
 public:
-    int streamIndex;
-    AVCodecParameters *codecParameters;
-    PlayStatus *playStatus;
-    RayQueue *queue;
+    int streamIndex = -1;
+    AVCodecParameters *codecParameters = NULL;
+    PlayStatus *playStatus = NULL;
+    RayQueue *queue = NULL;
     pthread_t threadPlay;
-    AVCodecContext *avCodecContext;
-    AVPacket *avPacket;
-    AVFrame *avFrame;
+    AVCodecContext *avCodecContext = NULL;
+    AVPacket *avPacket = NULL;
+    AVFrame *avFrame = NULL;
     int ret = 0;
     uint8_t *buffer = NULL;
     int dataSize = 0;
     int sampleRate = 0;
     bool isLoading = true;
-    RayCallJava *callJava;
-    int duration;
+    RayCallJava *callJava = NULL;
+    int duration = 0;
     AVRational timeBase;
     double nowTime; //当前frame时间
     double clock; //当前播放进度时间
@@ -50,7 +50,7 @@ public:
             SL_I3DL2_ENVIRONMENT_PRESET_STONECORRIDOR;
     SLObjectItf pcmPlayerObject = NULL;
     SLPlayItf pcmPlayer = NULL;
-    SLAndroidSimpleBufferQueueItf pcmBufferQueue;
+    SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
     RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava* rayCallJava);

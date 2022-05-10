@@ -4,10 +4,11 @@
 #include "RayCallJava.h"
 #include "androidlog.h"
 
-RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj) {
+RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject* obj) {
     javaVm = vm;
     jniEnv = env;
-    jobj = env->NewGlobalRef(obj);
+    jobj = *obj;
+    jobj = env->NewGlobalRef(jobj);
     jclass clz = env->GetObjectClass(jobj);
     //校验Java Class是否获取成功
     if (!clz) {

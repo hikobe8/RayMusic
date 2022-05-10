@@ -5,6 +5,7 @@
 #ifndef RAYMUSIC_RAYCALLJAVA_H
 #define RAYMUSIC_RAYCALLJAVA_H
 
+#include <cwchar>
 #include "jni.h"
 
 #define CHILD_THREAD 0
@@ -12,8 +13,8 @@
 
 class RayCallJava {
 
-    JavaVM *javaVm;
-    JNIEnv *jniEnv;
+    JavaVM *javaVm = NULL;
+    JNIEnv *jniEnv = NULL;
     jobject jobj;
     jmethodID jmidOnPrepared;
     jmethodID jmidOnLoading;
@@ -21,7 +22,7 @@ class RayCallJava {
     jmethodID jmidOnResume;
     jmethodID jmidOnProgressChange;
 public:
-    RayCallJava(JavaVM *vm, JNIEnv *env, jobject obj);
+    RayCallJava(JavaVM *vm, JNIEnv *env, jobject* obj);
     ~RayCallJava();
     void onCallPrepare(int type);
     void onCallLoading(int type, bool loading);

@@ -20,13 +20,17 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, jstring url) {
+
+    const char *realUrl = env->GetStringUTFChars(url, 0);
     if (NULL == rayFFmpeg) {
-        const char *realUrl = env->GetStringUTFChars(url, 0);
-        rayCallJava = new RayCallJava(javaVm, env, thiz);
+        if (NULL == rayCallJava) {
+            rayCallJava = new RayCallJava(javaVm, env, &thiz);
+        }
+        rayCallJava->onCallLoading(MAIN_THREAD, true);
         playStatus = new PlayStatus();
         rayFFmpeg = new RayFFmpeg(playStatus, rayCallJava, realUrl);
+        rayFFmpeg->prepare();
     }
-    rayFFmpeg->prepare();
 }
 
 extern "C"

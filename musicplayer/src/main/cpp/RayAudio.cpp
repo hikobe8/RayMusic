@@ -127,12 +127,12 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) pContext;
     int size = rayAudio->resampleAudio();
-    rayAudio->clock += size / ((double) rayAudio->sampleRate * 2 * 2);
-    if (rayAudio->clock - rayAudio->lastTime > 0.1) { //0.1秒回调一次
-        rayAudio->lastTime = rayAudio->clock;
-        rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
-    }
     if (size > 0) {
+        rayAudio->clock += size / ((double) rayAudio->sampleRate * 2 * 2);
+        if (rayAudio->clock - rayAudio->lastTime >= 0.1) { //0.1秒回调一次
+            rayAudio->lastTime = rayAudio->clock;
+            rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+        }
         (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, size);
     }
 }
@@ -256,8 +256,6 @@ void RayAudio::stop() {
 }
 
 void RayAudio::release() {
-    //停止播放
-    stop();
     //删除AVPacket队列，释放内存
     if (NULL != queue) {
         delete (queue);

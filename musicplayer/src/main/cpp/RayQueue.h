@@ -18,7 +18,7 @@ class RayQueue {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     std::queue<AVPacket*> queue;
-    PlayStatus* playStatus;
+    PlayStatus* playStatus  = NULL;
 public:
     RayQueue(PlayStatus* status);
     ~RayQueue();

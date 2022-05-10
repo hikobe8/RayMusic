@@ -18,13 +18,12 @@ extern "C" {
 
 class RayFFmpeg {
 public:
-    RayCallJava *callJava;
-    const char *url;
+    RayCallJava *callJava = NULL;
+    const char *url = NULL;
     pthread_t prepareThread;
-    pthread_t decodeThread;
-    AVFormatContext *avFormatContext;
-    RayAudio *rayAudio;
-    PlayStatus *playStatus;
+    AVFormatContext *avFormatContext = NULL;
+    RayAudio *rayAudio = NULL;
+    PlayStatus *playStatus = NULL;
     pthread_mutex_t initMutex;
     bool exit;
 

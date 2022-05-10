@@ -26,9 +26,6 @@ void RayFFmpeg::prepare() {
 
 int interruptCallback(void *ctx) {
     RayFFmpeg *context = (RayFFmpeg *) ctx;
-    if (NULL == context->playStatus) {
-        return AVERROR_EOF;
-    }
     if (context->playStatus->exit) {
         return AVERROR_EOF;
     }
@@ -41,8 +38,8 @@ void RayFFmpeg::prepareActual() {
     avformat_network_init();
     avFormatContext = avformat_alloc_context();
     //注册avformat_open_input的中断回调
-//    avFormatContext->interrupt_callback.callback = interruptCallback;
-//    avFormatContext->interrupt_callback.opaque = this;
+    avFormatContext->interrupt_callback.callback = interruptCallback;
+    avFormatContext->interrupt_callback.opaque = this;
     //打开文件流
     if (avformat_open_input(&avFormatContext, url, NULL, NULL) != 0) {
         LOGE("音频文件打开失败!")
@@ -59,11 +56,20 @@ void RayFFmpeg::prepareActual() {
     }
     for (int i = 0; i < avFormatContext->nb_streams; ++i) {
         if (avFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            LOGI("获取到音频流 %d", i)
-            rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus, callJava);
-            rayAudio->duration = avFormatContext->duration / AV_TIME_BASE;
-            rayAudio->timeBase = avFormatContext->streams[i]->time_base;
+            if (NULL == rayAudio) {
+                LOGI("获取到音频流 %d", i)
+                rayAudio = new RayAudio(i, avFormatContext->streams[i]->codecpar, playStatus,
+                                        callJava);
+                rayAudio->duration = avFormatContext->duration / AV_TIME_BASE;
+                rayAudio->timeBase = avFormatContext->streams[i]->time_base;
+            }
         }
+    }
+    if (NULL == rayAudio) {
+        LOGE("当前文件没有音频流信息!!")
+        exit = true;
+        pthread_mutex_unlock(&initMutex);
+        return;
     }
     //获取解码器
     AVCodec *dec = avcodec_find_decoder(rayAudio->codecParameters->codec_id);
@@ -92,48 +98,51 @@ void RayFFmpeg::prepareActual() {
         pthread_mutex_unlock(&initMutex);
         return;
     }
-    callJava->onCallPrepare(CHILD_THREAD);
+    if (NULL != callJava) {
+        if (NULL != playStatus && !playStatus->exit) {
+            callJava->onCallPrepare(CHILD_THREAD);
+        } else {
+            exit = true;
+        }
+    }
     pthread_mutex_unlock(&initMutex);
 }
 
-void *decodeActual(void *data) {
-    RayFFmpeg *rayFFmpeg = (RayFFmpeg *) (data);
-    rayFFmpeg->callJava->onCallLoading(CHILD_THREAD, true);
-    if (NULL == rayFFmpeg->rayAudio) {
+void RayFFmpeg::start() {
+    if (NULL == rayAudio) {
         LOGE("prepare method not called!")
-    } else {
-        rayFFmpeg->rayAudio->play();
-        while (NULL != rayFFmpeg->playStatus && !rayFFmpeg->playStatus->exit) {
-            AVPacket *avPacket = av_packet_alloc();
-            if (av_read_frame(rayFFmpeg->avFormatContext, avPacket) == 0) {
-                //读取到一帧数据
-                if (avPacket->stream_index == rayFFmpeg->rayAudio->streamIndex) {
-                    rayFFmpeg->rayAudio->queue->putAVPacket(avPacket);
-                } else {
-                    av_packet_free(&avPacket);
-                    av_free(avPacket);
-                }
+        return;
+    }
+    rayAudio->play();
+    while (NULL != playStatus && !playStatus->exit) {
+        AVPacket *avPacket = av_packet_alloc();
+        if (NULL == avFormatContext) {
+            exit = true;
+            break;
+        }
+        if (av_read_frame(avFormatContext, avPacket) == 0) {
+            //读取到一帧数据
+            if (avPacket->stream_index == rayAudio->streamIndex) {
+                rayAudio->queue->putAVPacket(avPacket);
             } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
-                while (NULL != rayFFmpeg->playStatus && !rayFFmpeg->playStatus->exit) {
-                    if (rayFFmpeg->rayAudio->queue->getQueueSize() > 0) {
-                        continue;
-                    } else {
-                        LOGI("decode finished!")
-                        rayFFmpeg->playStatus->exit = true;
-                        break;
-                    }
+            }
+        } else {
+            av_packet_free(&avPacket);
+            av_free(avPacket);
+            while (NULL != playStatus && !playStatus->exit) {
+                if (rayAudio->queue->getQueueSize() > 0) {
+                    continue;
+                } else {
+                    playStatus->exit = true;
+                    break;
                 }
             }
         }
     }
-    rayFFmpeg->exit = true;
-    pthread_exit(&rayFFmpeg->decodeThread);
-}
-
-void RayFFmpeg::start() {
-    pthread_create(&decodeThread, NULL, decodeActual, this);
+    LOGI("decode finished!")
+    exit = true;
 }
 
 void RayFFmpeg::pause() {
@@ -149,10 +158,11 @@ void RayFFmpeg::resume() {
 }
 
 void RayFFmpeg::release() {
+    LOGI("开始释放ffmpeg")
     if (playStatus->exit) {
         return;
     }
-    LOGI("开始释放ffmpeg")
+    LOGI("开始释放ffmpeg2")
     playStatus->exit = true;
     pthread_mutex_lock(&initMutex);
     int sleepCount = 0;
