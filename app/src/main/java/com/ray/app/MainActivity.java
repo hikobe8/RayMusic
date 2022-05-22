@@ -54,12 +54,13 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     public void start(View view) {
 //        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-        rayPlayer.native_prepare("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+        rayPlayer.setDataSource("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+        rayPlayer.prepare();
     }
 
     @Override
     public void onPlayerPrepared() {
-        rayPlayer.native_start();
+        rayPlayer.start();
     }
 
     @Override
@@ -87,19 +88,14 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     }
 
     public void pause(View view) {
-        rayPlayer.native_pause();
+        rayPlayer.pause();
     }
 
     public void resume(View view) {
-        rayPlayer.native_resume();
+        rayPlayer.resume();
     }
 
     public void stop(View view) {
-        new Thread(){
-            @Override
-            public void run() {
-                rayPlayer.native_stop();
-            }
-        }.start();
+        rayPlayer.stop();
     }
 }

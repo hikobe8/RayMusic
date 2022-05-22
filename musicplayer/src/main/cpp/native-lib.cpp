@@ -7,6 +7,7 @@ JavaVM *javaVm;
 RayFFmpeg *rayFFmpeg;
 PlayStatus *playStatus;
 RayCallJava *rayCallJava;
+pthread_t releaseThread;
 
 
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -17,10 +18,10 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
     }
     return JNI_VERSION_1_4;
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, jstring url) {
-
     const char *realUrl = env->GetStringUTFChars(url, 0);
     if (NULL == rayFFmpeg) {
         if (NULL == rayCallJava) {
@@ -55,9 +56,7 @@ Java_com_ray_musicplayer_RayPlayer_native_1resume(JNIEnv *env, jobject thiz) {
     }
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
+void *releaseRunnable(void *) {
     if (NULL != rayFFmpeg) {
         rayFFmpeg->release();
         delete (rayFFmpeg);
@@ -71,4 +70,14 @@ Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
             playStatus = NULL;
         }
     }
+    pthread_exit(&releaseThread);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
+    if (NULL != rayFFmpeg) {
+        pthread_create(&releaseThread, NULL, releaseRunnable, NULL);
+    }
+
 }

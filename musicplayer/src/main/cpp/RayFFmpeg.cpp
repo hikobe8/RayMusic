@@ -195,3 +195,4 @@ void RayFFmpeg::release() {
     }
     pthread_mutex_unlock(&initMutex);
 }
+

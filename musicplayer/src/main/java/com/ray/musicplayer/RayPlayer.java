@@ -15,6 +15,32 @@ public class RayPlayer {
 
     private PlayerListener mPlayerListener;
 
+    private String url;
+
+    public void setDataSource(String url) {
+        this.url = url;
+    }
+
+    public void prepare() {
+        native_prepare(url);
+    }
+
+    public void start() {
+        native_start();
+    }
+
+    public void pause() {
+        native_pause();
+    }
+
+    public void resume() {
+        native_resume();
+    }
+
+    public void stop() {
+        native_stop();
+    }
+
     public void setPlayerListener(PlayerListener playerListener) {
         mPlayerListener = playerListener;
     }
@@ -52,13 +78,13 @@ public class RayPlayer {
         }
     }
 
-    public native void native_start();
+    private native void native_start();
 
-    public native void native_prepare(String url);
+    private native void native_prepare(String url);
 
-    public native void native_pause();
+    private native void native_pause();
 
-    public native void native_resume();
+    private native void native_resume();
 
-    public native void native_stop();
+    private native void native_stop();
 }
