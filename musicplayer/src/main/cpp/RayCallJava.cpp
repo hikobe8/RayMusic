@@ -4,7 +4,7 @@
 #include "RayCallJava.h"
 #include "androidlog.h"
 
-RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject* obj) {
+RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject *obj) {
     javaVm = vm;
     jniEnv = env;
     jobj = *obj;
@@ -20,6 +20,7 @@ RayCallJava::RayCallJava(JavaVM *vm, JNIEnv *env, jobject* obj) {
     jmidOnPause = env->GetMethodID(clz, "onPausedFromNative", "()V");
     jmidOnResume = env->GetMethodID(clz, "onResumeFromNative", "()V");
     jmidOnProgressChange = env->GetMethodID(clz, "onPlayerTimeChangeFromNative", "(II)V");
+    jmidOnError = env->GetMethodID(clz, "onErrorFromNative", "(ILjava/lang/String;)V");
 }
 
 RayCallJava::~RayCallJava() {
@@ -92,6 +93,22 @@ void RayCallJava::onCallProgressChange(int type, int progress, int total) {
             return;
         }
         jenv->CallVoidMethod(jobj, jmidOnProgressChange, progress, total);
+        javaVm->DetachCurrentThread();
+    }
+}
+
+void RayCallJava::onCallError(int type, int code, char *msg) {
+    if (type == MAIN_THREAD) {
+        jstring jmsg = jniEnv->NewStringUTF(msg);
+        jniEnv->CallVoidMethod(jobj, jmidOnError, code, jmsg);
+    } else {
+        JNIEnv *jenv;
+        if (javaVm->AttachCurrentThread(&jenv, 0) != JNI_OK) {
+            LOGE("javaVm->AttachCurrentThread failed!");
+            return;
+        }
+        jstring jmsg = jenv->NewStringUTF(msg);
+        jenv->CallVoidMethod(jobj, jmidOnError, code, jmsg);
         javaVm->DetachCurrentThread();
     }
 }

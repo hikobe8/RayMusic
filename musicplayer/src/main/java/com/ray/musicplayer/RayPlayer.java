@@ -78,6 +78,13 @@ public class RayPlayer {
         }
     }
 
+    public void onErrorFromNative(int code, String msg) {
+        if (null != mPlayerListener) {
+            native_stop();
+            mPlayerListener.onError(code, msg);
+        }
+    }
+
     private native void native_start();
 
     private native void native_prepare(String url);

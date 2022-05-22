@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -85,6 +86,11 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     @Override
     public void onPlayerTimeChange(TimeInfo timeInfo) {
         Message.obtain(progressHandler, 1, timeInfo).sendToTarget();
+    }
+
+    @Override
+    public void onError(int code, String msg) {
+        Log.e("hikobe8", "error code = " + code + " , msg = " + msg);
     }
 
     public void pause(View view) {

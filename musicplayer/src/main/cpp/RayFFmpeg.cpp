@@ -43,6 +43,7 @@ void RayFFmpeg::prepareActual() {
     //打开文件流
     if (avformat_open_input(&avFormatContext, url, NULL, NULL) != 0) {
         LOGE("音频文件打开失败!")
+        callJava->onCallError(CHILD_THREAD, 1001, "音频文件打开失败");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -50,6 +51,7 @@ void RayFFmpeg::prepareActual() {
     //获取文件 stream数组信息
     if (avformat_find_stream_info(avFormatContext, NULL) < 0) {
         LOGE("获取文件stream信息失败!")
+        callJava->onCallError(CHILD_THREAD, 1002, "获取文件stream信息失败");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -67,6 +69,7 @@ void RayFFmpeg::prepareActual() {
     }
     if (NULL == rayAudio) {
         LOGE("当前文件没有音频流信息!!")
+        callJava->onCallError(CHILD_THREAD, 1003,  "当前文件没有音频流信息");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -75,6 +78,7 @@ void RayFFmpeg::prepareActual() {
     AVCodec *dec = avcodec_find_decoder(rayAudio->codecParameters->codec_id);
     if (!dec) {
         LOGE("获取音频解码器失败!")
+        callJava->onCallError(CHILD_THREAD, 1004,  "获取音频解码器失败");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -82,18 +86,21 @@ void RayFFmpeg::prepareActual() {
     rayAudio->avCodecContext = avcodec_alloc_context3(dec);
     if (!rayAudio->avCodecContext) {
         LOGE("avcodec_alloc_context3 failed!")
+        callJava->onCallError(CHILD_THREAD, 1005,  "avcodec_alloc_context3 failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
     }
     if (avcodec_parameters_to_context(rayAudio->avCodecContext, rayAudio->codecParameters) < 0) {
         LOGE("avcodec_parameters_to_context failed!")
+        callJava->onCallError(CHILD_THREAD, 1006,  "avcodec_parameters_to_context failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
     }
     if (avcodec_open2(rayAudio->avCodecContext, dec, NULL) != 0) {
         LOGE("open stream failed!")
+        callJava->onCallError(CHILD_THREAD, 1007,  "open stream failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;

@@ -22,4 +22,6 @@ public interface PlayerListener {
 
     void onPlayerTimeChange(TimeInfo timeInfo);
 
+    void onError(int code, String msg);
+
 }

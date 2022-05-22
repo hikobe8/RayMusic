@@ -8,6 +8,8 @@ RayFFmpeg *rayFFmpeg;
 PlayStatus *playStatus;
 RayCallJava *rayCallJava;
 pthread_t releaseThread;
+//是否正在退出，避免重复进行退出操作
+bool exiting = false;
 
 
 extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *jvm, void *reserved) {
@@ -70,12 +72,16 @@ void *releaseRunnable(void *) {
             playStatus = NULL;
         }
     }
+    exiting = false;
     pthread_exit(&releaseThread);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
+    if (exiting)
+        return;
+    exiting = true;
     if (NULL != rayFFmpeg) {
         pthread_create(&releaseThread, NULL, releaseRunnable, NULL);
     }
