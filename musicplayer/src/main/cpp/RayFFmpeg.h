@@ -25,7 +25,10 @@ public:
     RayAudio *rayAudio = NULL;
     PlayStatus *playStatus = NULL;
     pthread_mutex_t initMutex;
+    pthread_t seekThread;
+    pthread_mutex_t seekMutex;
     bool exit;
+    int64_t seekSeconds;
 
 public:
     RayFFmpeg(PlayStatus *status, RayCallJava *rayCallJava, const char *url);
@@ -43,6 +46,10 @@ public:
     void resume();
 
     void release();
+
+    void seek(int seconds);
+
+    void seekActual();
 
 };
 

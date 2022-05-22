@@ -54,8 +54,8 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     }
 
     public void start(View view) {
-//        rayPlayer.native_prepare("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-        rayPlayer.setDataSource("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+        rayPlayer.setDataSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
+//        rayPlayer.setDataSource("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
         rayPlayer.prepare();
     }
 
@@ -103,5 +103,9 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     public void stop(View view) {
         rayPlayer.stop();
+    }
+
+    public void seek(View view) {
+        rayPlayer.seek(100);
     }
 }

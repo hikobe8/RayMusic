@@ -41,6 +41,10 @@ public class RayPlayer {
         native_stop();
     }
 
+    public void seek(int seconds) {
+        native_seek(seconds);
+    }
+
     public void setPlayerListener(PlayerListener playerListener) {
         mPlayerListener = playerListener;
     }
@@ -94,4 +98,7 @@ public class RayPlayer {
     private native void native_resume();
 
     private native void native_stop();
+
+    private native void native_seek(int seconds);
+
 }

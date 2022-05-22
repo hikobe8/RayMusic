@@ -8,10 +8,12 @@ RayFFmpeg::RayFFmpeg(PlayStatus *status, RayCallJava *rayCallJava, const char *u
     callJava = rayCallJava;
     this->url = url;
     pthread_mutex_init(&initMutex, NULL);
+    pthread_mutex_init(&seekMutex, NULL);
 }
 
 RayFFmpeg::~RayFFmpeg() {
     pthread_mutex_destroy(&initMutex);
+    pthread_mutex_destroy(&seekMutex);
 }
 
 void *prepareRunnable(void *data) {
@@ -69,7 +71,7 @@ void RayFFmpeg::prepareActual() {
     }
     if (NULL == rayAudio) {
         LOGE("当前文件没有音频流信息!!")
-        callJava->onCallError(CHILD_THREAD, 1003,  "当前文件没有音频流信息");
+        callJava->onCallError(CHILD_THREAD, 1003, "当前文件没有音频流信息");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -78,7 +80,7 @@ void RayFFmpeg::prepareActual() {
     AVCodec *dec = avcodec_find_decoder(rayAudio->codecParameters->codec_id);
     if (!dec) {
         LOGE("获取音频解码器失败!")
-        callJava->onCallError(CHILD_THREAD, 1004,  "获取音频解码器失败");
+        callJava->onCallError(CHILD_THREAD, 1004, "获取音频解码器失败");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -86,21 +88,21 @@ void RayFFmpeg::prepareActual() {
     rayAudio->avCodecContext = avcodec_alloc_context3(dec);
     if (!rayAudio->avCodecContext) {
         LOGE("avcodec_alloc_context3 failed!")
-        callJava->onCallError(CHILD_THREAD, 1005,  "avcodec_alloc_context3 failed");
+        callJava->onCallError(CHILD_THREAD, 1005, "avcodec_alloc_context3 failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
     }
     if (avcodec_parameters_to_context(rayAudio->avCodecContext, rayAudio->codecParameters) < 0) {
         LOGE("avcodec_parameters_to_context failed!")
-        callJava->onCallError(CHILD_THREAD, 1006,  "avcodec_parameters_to_context failed");
+        callJava->onCallError(CHILD_THREAD, 1006, "avcodec_parameters_to_context failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
     }
     if (avcodec_open2(rayAudio->avCodecContext, dec, NULL) != 0) {
         LOGE("open stream failed!")
-        callJava->onCallError(CHILD_THREAD, 1007,  "open stream failed");
+        callJava->onCallError(CHILD_THREAD, 1007, "open stream failed");
         exit = true;
         pthread_mutex_unlock(&initMutex);
         return;
@@ -122,12 +124,22 @@ void RayFFmpeg::start() {
     }
     rayAudio->play();
     while (NULL != playStatus && !playStatus->exit) {
+        if (playStatus->seek) {
+            continue; //seek时 不解码数据
+        }
+        if (rayAudio->queue->getQueueSize() > 40) {
+            //保证队列中有数据不至于提前解码完成，seek失败
+            continue;
+        }
         AVPacket *avPacket = av_packet_alloc();
         if (NULL == avFormatContext) {
             exit = true;
             break;
         }
-        if (av_read_frame(avFormatContext, avPacket) == 0) {
+        pthread_mutex_lock(&seekMutex);
+        int read = av_read_frame(avFormatContext, avPacket);
+        pthread_mutex_unlock(&seekMutex);
+        if (read == 0) {
             //读取到一帧数据
             if (avPacket->stream_index == rayAudio->streamIndex) {
                 rayAudio->queue->putAVPacket(avPacket);
@@ -201,5 +213,35 @@ void RayFFmpeg::release() {
         playStatus = NULL;
     }
     pthread_mutex_unlock(&initMutex);
+}
+
+void *seekRunnable(void *data) {
+    RayFFmpeg * rayFFmpeg = (RayFFmpeg *) data;
+    rayFFmpeg->seekActual();
+    pthread_exit(&rayFFmpeg->seekThread);
+}
+
+void RayFFmpeg::seek(int seconds) {
+    if (NULL == rayAudio)
+        return;
+    if (rayAudio->duration <= 0) {
+        return;
+    }
+    if (seconds >= 0 && seconds <= rayAudio->duration) {
+        seekSeconds = seconds;
+        pthread_create(&seekThread, NULL, seekRunnable , this);
+    }
+}
+
+void RayFFmpeg::seekActual() {
+    playStatus->seek = true;
+    rayAudio->queue->clearAVPacket();
+    rayAudio->clock = 0;
+    rayAudio->lastTime = 0;
+    pthread_mutex_lock(&seekMutex);
+    avformat_seek_file(avFormatContext, -1, INT64_MIN,
+                       seekSeconds * AV_TIME_BASE, INT64_MAX, 0);
+    pthread_mutex_unlock(&seekMutex);
+    playStatus->seek = false;
 }
 
