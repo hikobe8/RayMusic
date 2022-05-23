@@ -35,9 +35,9 @@ public:
     RayCallJava *callJava = NULL;
     int duration = 0;
     AVRational timeBase;
-    double nowTime; //当前frame时间
-    double clock; //当前播放进度时间
-    double lastTime; //用于控制时间进度回调，不用每一帧都回调时间进度
+    double nowTime = 0.0; //当前frame时间
+    double clock = 0.0; //当前播放进度时间
+    double lastTime = 0.0; //用于控制时间进度回调，不用每一帧都回调时间进度
 
 
     //OpenSLES
@@ -53,7 +53,7 @@ public:
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
-    RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava* rayCallJava);
+    RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava *rayCallJava);
 
     ~RayAudio();
 

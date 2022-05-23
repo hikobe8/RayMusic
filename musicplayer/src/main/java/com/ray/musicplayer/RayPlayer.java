@@ -89,6 +89,13 @@ public class RayPlayer {
         }
     }
 
+    public void onCompleteFromNative() {
+        if (null != mPlayerListener) {
+            native_stop();
+            mPlayerListener.onComplete();
+        }
+    }
+
     private native void native_start();
 
     private native void native_prepare(String url);

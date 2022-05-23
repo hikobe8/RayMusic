@@ -11,7 +11,7 @@ RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status,
     playStatus = status;
     queue = new RayQueue(playStatus);
     sampleRate = codecP->sample_rate;
-    buffer = (uint8_t *) (av_malloc(sampleRate * 2 * 2));
+    buffer = (uint8_t * )(av_malloc(sampleRate * 2 * 2));
     callJava = rayCallJava;
 }
 
@@ -128,10 +128,11 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
     RayAudio *rayAudio = (RayAudio *) pContext;
     int size = rayAudio->resampleAudio();
     if (size > 0) {
-        rayAudio->clock += size / ((double) rayAudio->sampleRate * 2 * 2);
+        rayAudio->clock += size / ((double) (rayAudio->sampleRate * 2 * 2));
         if (rayAudio->clock - rayAudio->lastTime >= 0.1) { //0.1秒回调一次
             rayAudio->lastTime = rayAudio->clock;
-            rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock, rayAudio->duration);
+            rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock,
+                                                     rayAudio->duration);
         }
         (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, size);
     }

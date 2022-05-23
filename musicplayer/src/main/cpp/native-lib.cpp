@@ -4,10 +4,11 @@
 #include "RayFFmpeg.h"
 
 JavaVM *javaVm;
-RayFFmpeg *rayFFmpeg;
-PlayStatus *playStatus;
-RayCallJava *rayCallJava;
+RayFFmpeg *rayFFmpeg = NULL;
+PlayStatus *playStatus = NULL;
+RayCallJava *rayCallJava = NULL;
 pthread_t releaseThread;
+pthread_t startThread;
 //是否正在退出，避免重复进行退出操作
 bool exiting = false;
 
@@ -36,11 +37,17 @@ Java_com_ray_musicplayer_RayPlayer_native_1prepare(JNIEnv *env, jobject thiz, js
     }
 }
 
+void *startRunnable(void * data) {
+    RayFFmpeg* fFmpeg = (RayFFmpeg*)data;
+    fFmpeg->start();
+    pthread_exit(&startThread);
+}
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1start(JNIEnv *env, jobject thiz) {
     if (NULL != rayFFmpeg) {
-        rayFFmpeg->start();
+        pthread_create(&startThread, NULL, startRunnable, rayFFmpeg);
     }
 }
 extern "C"
@@ -58,7 +65,8 @@ Java_com_ray_musicplayer_RayPlayer_native_1resume(JNIEnv *env, jobject thiz) {
     }
 }
 
-void *releaseRunnable(void *) {
+void *releaseRunnable(void * data) {
+    exiting = true;
     if (NULL != rayFFmpeg) {
         rayFFmpeg->release();
         delete (rayFFmpeg);
@@ -81,9 +89,8 @@ JNIEXPORT void JNICALL
 Java_com_ray_musicplayer_RayPlayer_native_1stop(JNIEnv *env, jobject thiz) {
     if (exiting)
         return;
-    exiting = true;
     if (NULL != rayFFmpeg) {
-        pthread_create(&releaseThread, NULL, releaseRunnable, NULL);
+        pthread_create(&releaseThread, NULL, releaseRunnable, rayFFmpeg);
     }
 
 }

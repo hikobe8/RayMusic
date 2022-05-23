@@ -90,7 +90,13 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     @Override
     public void onError(int code, String msg) {
-        Log.e("hikobe8", "error code = " + code + " , msg = " + msg);
+        RayLog.e("error code = " + code + " , msg = " + msg);
+    }
+
+    @Override
+    public void onComplete() {
+        Message.obtain(progressHandler, 1, new TimeInfo()).sendToTarget();
+        RayLog.i("播放完成");
     }
 
     public void pause(View view) {
@@ -102,10 +108,11 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     }
 
     public void stop(View view) {
+        Message.obtain(progressHandler, 1, new TimeInfo()).sendToTarget();
         rayPlayer.stop();
     }
 
     public void seek(View view) {
-        rayPlayer.seek(100);
+        rayPlayer.seek(216);
     }
 }

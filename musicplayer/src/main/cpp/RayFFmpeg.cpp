@@ -160,6 +160,9 @@ void RayFFmpeg::start() {
             }
         }
     }
+    if (NULL != callJava) {
+        callJava->onCallComplete(CHILD_THREAD);
+    }
     LOGI("decode finished!")
     exit = true;
 }
@@ -178,10 +181,6 @@ void RayFFmpeg::resume() {
 
 void RayFFmpeg::release() {
     LOGI("开始释放ffmpeg")
-    if (playStatus->exit) {
-        return;
-    }
-    LOGI("开始释放ffmpeg2")
     playStatus->exit = true;
     pthread_mutex_lock(&initMutex);
     int sleepCount = 0;

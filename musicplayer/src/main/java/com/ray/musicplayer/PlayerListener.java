@@ -24,4 +24,6 @@ public interface PlayerListener {
 
     void onError(int code, String msg);
 
+    void onComplete();
+
 }

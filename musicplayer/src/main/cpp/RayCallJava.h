@@ -22,6 +22,7 @@ class RayCallJava {
     jmethodID jmidOnResume;
     jmethodID jmidOnProgressChange;
     jmethodID jmidOnError;
+    jmethodID jmidOnComplete;
 public:
     RayCallJava(JavaVM *vm, JNIEnv *env, jobject *obj);
 
@@ -38,6 +39,8 @@ public:
     void onCallProgressChange(int type, int progress, int total);
 
     void onCallError(int type, int code, char *msg);
+
+    void onCallComplete(int type);
 };
 
 
