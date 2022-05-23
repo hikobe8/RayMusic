@@ -17,6 +17,8 @@ public class RayPlayer {
 
     private String url;
 
+    private boolean playNext = false;
+
     public void setDataSource(String url) {
         this.url = url;
     }
@@ -47,6 +49,12 @@ public class RayPlayer {
 
     public void setPlayerListener(PlayerListener playerListener) {
         mPlayerListener = playerListener;
+    }
+
+    public void playNext(String url) {
+        this.url = url;
+        stop();
+        playNext = true;
     }
 
     public void onPreparedFromJni() {
@@ -93,6 +101,13 @@ public class RayPlayer {
         if (null != mPlayerListener) {
             native_stop();
             mPlayerListener.onComplete();
+        }
+    }
+
+    public void onPlayNextFromNative() {
+        if (playNext) {
+            playNext = false;
+            prepare();
         }
     }
 

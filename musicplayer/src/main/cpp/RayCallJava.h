@@ -41,6 +41,7 @@ public:
     void onCallError(int type, int code, char *msg);
 
     void onCallComplete(int type);
+
 };
 
 

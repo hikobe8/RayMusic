@@ -115,4 +115,8 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     public void seek(View view) {
         rayPlayer.seek(216);
     }
+
+    public void next(View view) {
+        rayPlayer.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+    }
 }
