@@ -113,3 +113,11 @@ Java_com_ray_musicplayer_RayPlayer_native_1seek(JNIEnv *env, jobject thiz, jint 
         rayFFmpeg->seek(seconds);
     }
 }
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1duration(JNIEnv *env, jobject thiz) {
+    if (NULL != rayFFmpeg) {
+        return rayFFmpeg->getDuration();
+    }
+    return 0;
+}

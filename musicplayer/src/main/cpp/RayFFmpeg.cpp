@@ -215,7 +215,7 @@ void RayFFmpeg::release() {
 }
 
 void *seekRunnable(void *data) {
-    RayFFmpeg * rayFFmpeg = (RayFFmpeg *) data;
+    RayFFmpeg *rayFFmpeg = (RayFFmpeg *) data;
     rayFFmpeg->seekActual();
     pthread_exit(&rayFFmpeg->seekThread);
 }
@@ -228,7 +228,7 @@ void RayFFmpeg::seek(int seconds) {
     }
     if (seconds >= 0 && seconds <= rayAudio->duration) {
         seekSeconds = seconds;
-        pthread_create(&seekThread, NULL, seekRunnable , this);
+        pthread_create(&seekThread, NULL, seekRunnable, this);
     }
 }
 
@@ -242,5 +242,12 @@ void RayFFmpeg::seekActual() {
                        seekSeconds * AV_TIME_BASE, INT64_MAX, 0);
     pthread_mutex_unlock(&seekMutex);
     playStatus->seek = false;
+}
+
+int RayFFmpeg::getDuration() {
+    if (NULL != rayAudio) {
+        return rayAudio->duration;
+    }
+    return 0;
 }
 

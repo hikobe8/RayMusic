@@ -19,6 +19,8 @@ public class RayPlayer {
 
     private boolean playNext = false;
 
+    private int mDuration;
+
     public void setDataSource(String url) {
         this.url = url;
     }
@@ -40,6 +42,7 @@ public class RayPlayer {
     }
 
     public void stop() {
+        mDuration = 0;
         native_stop();
     }
 
@@ -57,10 +60,15 @@ public class RayPlayer {
         playNext = true;
     }
 
+    public int getDuration() {
+        return mDuration;
+    }
+
     public void onPreparedFromJni() {
         if (null != mPlayerListener) {
             mPlayerListener.onPlayerPrepared();
         }
+        mDuration = native_duration();
     }
 
     public void onLoadingFromJni(boolean loading) {
@@ -92,14 +100,14 @@ public class RayPlayer {
 
     public void onErrorFromNative(int code, String msg) {
         if (null != mPlayerListener) {
-            native_stop();
+            stop();
             mPlayerListener.onError(code, msg);
         }
     }
 
     public void onCompleteFromNative() {
         if (null != mPlayerListener) {
-            native_stop();
+            stop();
             mPlayerListener.onComplete();
         }
     }
@@ -122,5 +130,7 @@ public class RayPlayer {
     private native void native_stop();
 
     private native void native_seek(int seconds);
+
+    private native int native_duration();
 
 }

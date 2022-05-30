@@ -10,8 +10,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.ray.bean.TimeInfo;
@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     RayPlayer rayPlayer;
     private TextView tvProgress;
     private TextView tvTotal;
+    private SeekBar progressBar;
 
     Handler progressHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
                 TimeInfo timeInfo = (TimeInfo) msg.obj;
                 tvProgress.setText(TimeUtil.secondsToDateFormat(timeInfo.current, timeInfo.total));
                 tvTotal.setText(TimeUtil.secondsToDateFormat(timeInfo.total, timeInfo.total));
+                if (timeInfo.total > 0) {
+                    progressBar.setProgress((int) (timeInfo.current * 100f / timeInfo.total));
+                }
             }
         }
     };
@@ -51,6 +55,27 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
             }
         }
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setMax(100);
+        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    int seconds = (int) (progress * 1f / seekBar.getMax() * rayPlayer.getDuration());
+                    rayPlayer.seek(seconds);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                rayPlayer.pause();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                rayPlayer.resume();
+            }
+        });
     }
 
     public void start(View view) {
@@ -110,10 +135,7 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     public void stop(View view) {
         Message.obtain(progressHandler, 1, new TimeInfo()).sendToTarget();
         rayPlayer.stop();
-    }
-
-    public void seek(View view) {
-        rayPlayer.seek(216);
+        progressBar.setProgress(0);
     }
 
     public void next(View view) {
