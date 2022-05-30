@@ -21,6 +21,8 @@ public class RayPlayer {
 
     private int mDuration;
 
+    private int volumePercent = 100;
+
     public void setDataSource(String url) {
         this.url = url;
     }
@@ -30,6 +32,7 @@ public class RayPlayer {
     }
 
     public void start() {
+        native_setVolume(volumePercent);
         native_start();
     }
 
@@ -62,6 +65,13 @@ public class RayPlayer {
 
     public int getDuration() {
         return mDuration;
+    }
+
+    public void setVolumePercent(int volumePercent) {
+        if (volumePercent >= 0 && volumePercent <= 100) {
+            this.volumePercent = volumePercent;
+            native_setVolume(this.volumePercent);
+        }
     }
 
     public void onPreparedFromJni() {
@@ -133,4 +143,9 @@ public class RayPlayer {
 
     private native int native_duration();
 
+    private native void native_setVolume(int volume);
+
+    public int getVolumePercent() {
+        return volumePercent;
+    }
 }

@@ -11,7 +11,7 @@ RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status,
     playStatus = status;
     queue = new RayQueue(playStatus);
     sampleRate = codecP->sample_rate;
-    buffer = (uint8_t * )(av_malloc(sampleRate * 2 * 2));
+    buffer = (uint8_t *) (av_malloc(sampleRate * 2 * 2));
     callJava = rayCallJava;
 }
 
@@ -170,11 +170,11 @@ void RayAudio::initOpenSLES() {
     // configure audio sink
     SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
     SLDataSink audioSnk = {&loc_outmix, NULL};
-    const SLInterfaceID audioIds[1] = {SL_IID_BUFFERQUEUE};
-    const SLboolean audioReqs[1] = {SL_BOOLEAN_TRUE};
+    const SLInterfaceID audioIds[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
+    const SLboolean audioReqs[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
     //创建播放器对象
     (*engineEngine)->CreateAudioPlayer(engineEngine, &pcmPlayerObject, &audioSrc, &audioSnk,
-                                       1, audioIds, audioReqs);
+                                       2, audioIds, audioReqs);
     //realize
     (*pcmPlayerObject)->Realize(pcmPlayerObject, SL_BOOLEAN_FALSE);
     //创建播放器实例对象
@@ -184,6 +184,8 @@ void RayAudio::initOpenSLES() {
     //缓冲区接口回调
     (*pcmBufferQueue)->RegisterCallback(pcmBufferQueue, pcmBufferCallback, this);
     (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PLAYING);
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_VOLUME, &pcmVolumeObject);
+    setVolume(volumePercent);
     pcmBufferCallback(pcmBufferQueue, this);
 }
 
@@ -296,5 +298,30 @@ void RayAudio::release() {
     }
     if (NULL != playStatus) {
         playStatus = NULL;
+    }
+}
+
+void RayAudio::setVolume(int percent) {
+    volumePercent = percent;
+    if (pcmVolumeObject != NULL) {
+        if (percent > 30) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -20);
+        } else if (percent > 25) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -22);
+        } else if (percent > 20) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -25);
+        } else if (percent > 15) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -28);
+        } else if (percent > 10) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -30);
+        } else if (percent > 5) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -34);
+        } else if (percent > 3) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -37);
+        } else if (percent > 0) {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -40);
+        } else {
+            (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -100);
+        }
     }
 }

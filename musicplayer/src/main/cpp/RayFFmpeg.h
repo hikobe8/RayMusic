@@ -53,6 +53,8 @@ public:
 
     int getDuration();
 
+    void setVolume(int percent);
+
 };
 
 

@@ -121,3 +121,11 @@ Java_com_ray_musicplayer_RayPlayer_native_1duration(JNIEnv *env, jobject thiz) {
     }
     return 0;
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1setVolume(JNIEnv *env, jobject thiz, jint volume) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->setVolume(volume);
+    }
+}

@@ -251,3 +251,9 @@ int RayFFmpeg::getDuration() {
     return 0;
 }
 
+void RayFFmpeg::setVolume(int percent) {
+    if (NULL != rayAudio) {
+        rayAudio->setVolume(percent);
+    }
+}
+

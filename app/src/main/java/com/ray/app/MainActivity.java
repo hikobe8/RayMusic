@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     private TextView tvProgress;
     private TextView tvTotal;
     private SeekBar progressBar;
+    private TextView tvVolume;
+    private SeekBar volumeBar;
 
     Handler progressHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -74,6 +76,28 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 rayPlayer.resume();
+            }
+        });
+        tvVolume = findViewById(R.id.tv_volume);
+        volumeBar = findViewById(R.id.volumeBar);
+        rayPlayer.setVolumePercent(50);
+        tvVolume.setText("当前音量：" + rayPlayer.getVolumePercent());
+        volumeBar.setProgress(rayPlayer.getVolumePercent());
+        volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                rayPlayer.setVolumePercent(progress);
+                tvVolume.setText("当前音量：" + rayPlayer.getVolumePercent());
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
     }
