@@ -23,6 +23,9 @@ public class RayPlayer {
 
     private int volumePercent = 100;
 
+    private @ChannelMode
+    int channelMode = ChannelMode.CHANNEL_LEFT;
+
     public void setDataSource(String url) {
         this.url = url;
     }
@@ -32,7 +35,8 @@ public class RayPlayer {
     }
 
     public void start() {
-        native_setVolume(volumePercent);
+        setVolumePercent(volumePercent);
+        setChannelMode(channelMode);
         native_start();
     }
 
@@ -72,6 +76,11 @@ public class RayPlayer {
             this.volumePercent = volumePercent;
             native_setVolume(this.volumePercent);
         }
+    }
+
+    public void setChannelMode(@ChannelMode int channelMode) {
+        this.channelMode = channelMode;
+        native_setChannel(channelMode);
     }
 
     public void onPreparedFromJni() {
@@ -144,6 +153,8 @@ public class RayPlayer {
     private native int native_duration();
 
     private native void native_setVolume(int volume);
+
+    private native void native_setChannel(int mode);
 
     public int getVolumePercent() {
         return volumePercent;

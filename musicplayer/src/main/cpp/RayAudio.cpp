@@ -170,11 +170,11 @@ void RayAudio::initOpenSLES() {
     // configure audio sink
     SLDataLocator_OutputMix loc_outmix = {SL_DATALOCATOR_OUTPUTMIX, outputMixObject};
     SLDataSink audioSnk = {&loc_outmix, NULL};
-    const SLInterfaceID audioIds[2] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME};
-    const SLboolean audioReqs[2] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
+    const SLInterfaceID audioIds[3] = {SL_IID_BUFFERQUEUE, SL_IID_VOLUME, SL_IID_MUTESOLO};
+    const SLboolean audioReqs[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
     //创建播放器对象
     (*engineEngine)->CreateAudioPlayer(engineEngine, &pcmPlayerObject, &audioSrc, &audioSnk,
-                                       2, audioIds, audioReqs);
+                                       3, audioIds, audioReqs);
     //realize
     (*pcmPlayerObject)->Realize(pcmPlayerObject, SL_BOOLEAN_FALSE);
     //创建播放器实例对象
@@ -186,6 +186,8 @@ void RayAudio::initOpenSLES() {
     (*pcmPlayer)->SetPlayState(pcmPlayer, SL_PLAYSTATE_PLAYING);
     (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_VOLUME, &pcmVolumeObject);
     setVolume(volumePercent);
+    (*pcmPlayerObject)->GetInterface(pcmPlayerObject, SL_IID_MUTESOLO, &pcmMuteSolo);
+    setChannel(channelMode);
     pcmBufferCallback(pcmBufferQueue, this);
 }
 
@@ -323,5 +325,24 @@ void RayAudio::setVolume(int percent) {
         } else {
             (*pcmVolumeObject)->SetVolumeLevel(pcmVolumeObject, (100 - percent) * -100);
         }
+    }
+}
+
+void RayAudio::setChannel(int mode) {
+    channelMode = mode;
+    if (NULL == pcmMuteSolo)
+        return;
+    if (mode == 0) {
+        //左声道
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 0, true);
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 1, false);
+    } else if (mode == 1) {
+        //右声道
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 0, false);
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 1, true);
+    } else {
+        //立体声
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 0, false);
+        (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 1, false);
     }
 }

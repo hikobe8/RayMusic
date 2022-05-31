@@ -257,3 +257,9 @@ void RayFFmpeg::setVolume(int percent) {
     }
 }
 
+void RayFFmpeg::setChannel(int mode) {
+    if (NULL != rayAudio) {
+        rayAudio->setChannel(mode);
+    }
+}
+

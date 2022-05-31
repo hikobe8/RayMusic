@@ -15,6 +15,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.ray.bean.TimeInfo;
+import com.ray.musicplayer.ChannelMode;
 import com.ray.musicplayer.PlayerListener;
 import com.ray.musicplayer.RayLog;
 import com.ray.musicplayer.RayPlayer;
@@ -164,5 +165,17 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     public void next(View view) {
         rayPlayer.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+    }
+
+    public void left(View view) {
+        rayPlayer.setChannelMode(ChannelMode.CHANNEL_LEFT);
+    }
+
+    public void stereo(View view) {
+        rayPlayer.setChannelMode(ChannelMode.CHANNEL_STEREO);
+    }
+
+    public void right(View view) {
+        rayPlayer.setChannelMode(ChannelMode.CHANNEL_RIGHT);
     }
 }

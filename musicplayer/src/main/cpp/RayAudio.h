@@ -39,6 +39,7 @@ public:
     double clock = 0.0; //当前播放进度时间
     double lastTime = 0.0; //用于控制时间进度回调，不用每一帧都回调时间进度
     int volumePercent = 100;
+    int channelMode = 0; //默认左声道
 
     //OpenSLES
     SLObjectItf engineObject = NULL;
@@ -52,6 +53,7 @@ public:
     SLPlayItf pcmPlayer = NULL;
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
     SLVolumeItf pcmVolumeObject = NULL;
+    SLMuteSoloItf pcmMuteSolo = NULL;
 
 public:
     RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava *rayCallJava);
@@ -79,6 +81,8 @@ public:
     void release();
 
     void setVolume(int percent);
+
+    void setChannel(int mode);
 };
 
 

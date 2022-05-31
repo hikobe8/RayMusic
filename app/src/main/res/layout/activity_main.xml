@@ -49,7 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="start"
-            android:text="start"
+            android:text="开始"
             android:textAllCaps="false" />
 
         <Button
@@ -57,7 +57,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="stop"
-            android:text="stop"
+            android:text="停止"
             android:textAllCaps="false" />
 
         <Button
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="pause"
-            android:text="pause"
+            android:text="暂停"
             android:textAllCaps="false" />
 
         <Button
@@ -73,7 +73,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:onClick="resume"
-            android:text="resume"
+            android:text="恢复"
             android:textAllCaps="false" />
 
         <Button
@@ -81,7 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:onClick="next"
-            android:text="next"
+            android:text="下一首"
             android:textAllCaps="false" />
 
     </LinearLayout>
@@ -96,5 +96,36 @@
         android:max="100"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="left"
+            android:text="左声道"
+            android:textAllCaps="false" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="stereo"
+            android:text="立体声"
+            android:textAllCaps="false" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="right"
+            android:text="右声道"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
 
 </LinearLayout>
