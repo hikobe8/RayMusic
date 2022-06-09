@@ -57,6 +57,10 @@ public:
 
     void setChannel(int mode);
 
+    void setPitch(float pitch);
+
+    void setSpeed(float speed);
+
 };
 
 

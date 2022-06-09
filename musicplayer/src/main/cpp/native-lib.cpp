@@ -137,3 +137,17 @@ Java_com_ray_musicplayer_RayPlayer_native_1setChannel(JNIEnv *env, jobject thiz,
         rayFFmpeg->setChannel(mode);
     }
 }
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1setSpeed(JNIEnv *env, jobject thiz, jfloat speed) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->setSpeed(speed);
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_ray_musicplayer_RayPlayer_native_1setPitch(JNIEnv *env, jobject thiz, jfloat pitch) {
+    if (NULL != rayFFmpeg) {
+        rayFFmpeg->setPitch(pitch);
+    }
+}

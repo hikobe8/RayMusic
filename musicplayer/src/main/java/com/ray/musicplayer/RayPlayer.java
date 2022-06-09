@@ -23,8 +23,11 @@ public class RayPlayer {
 
     private int volumePercent = 100;
 
+    private float speed = 1.0f;
+    private float pitch = 1.0f;
+
     private @ChannelMode
-    int channelMode = ChannelMode.CHANNEL_LEFT;
+    int channelMode = ChannelMode.CHANNEL_STEREO;
 
     public void setDataSource(String url) {
         this.url = url;
@@ -65,6 +68,16 @@ public class RayPlayer {
         this.url = url;
         stop();
         playNext = true;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+        native_setSpeed(speed);
+    }
+
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+        native_setPitch(pitch);
     }
 
     public int getDuration() {
@@ -138,6 +151,10 @@ public class RayPlayer {
         }
     }
 
+    public int getVolumePercent() {
+        return volumePercent;
+    }
+
     private native void native_start();
 
     private native void native_prepare(String url);
@@ -156,7 +173,8 @@ public class RayPlayer {
 
     private native void native_setChannel(int mode);
 
-    public int getVolumePercent() {
-        return volumePercent;
-    }
+    private native void native_setSpeed(float speed);
+
+    private native void native_setPitch(float pitch);
+
 }

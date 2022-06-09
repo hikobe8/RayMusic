@@ -10,6 +10,9 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include "RayCallJava.h"
+#include "SoundTouch.h"
+
+using namespace soundtouch;
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -39,7 +42,7 @@ public:
     double clock = 0.0; //当前播放进度时间
     double lastTime = 0.0; //用于控制时间进度回调，不用每一帧都回调时间进度
     int volumePercent = 100;
-    int channelMode = 0; //默认左声道
+    int channelMode = 1; //默认左声道
 
     //OpenSLES
     SLObjectItf engineObject = NULL;
@@ -55,6 +58,18 @@ public:
     SLVolumeItf pcmVolumeObject = NULL;
     SLMuteSoloItf pcmMuteSolo = NULL;
 
+    //soundtouch
+    SoundTouch* soundTouch = NULL;
+    SAMPLETYPE* sampleBuffer = NULL;
+    uint8_t * out_buffer = NULL;
+    bool finished = true;
+    int nb = 0;
+    int num = 0;
+    //速度
+    float speed = 1.0f;
+    //音调
+    float pitch = 1.0f;
+
 public:
     RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status, RayCallJava *rayCallJava);
 
@@ -62,7 +77,7 @@ public:
 
     void play();
 
-    int resampleAudio();
+    int resampleAudio(void ** pcmBuffer);
 
     void freeAvPacket();
 
@@ -83,6 +98,13 @@ public:
     void setVolume(int percent);
 
     void setChannel(int mode);
+
+    int getSoundTouchData();
+
+    void setPitch(float pitch);
+
+    void setSpeed(float speed);
+
 };
 
 

@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
     @Override
     public void onComplete() {
         Message.obtain(progressHandler, 1, new TimeInfo()).sendToTarget();
+        progressBar.setProgress(0);
         RayLog.i("播放完成");
     }
 
@@ -177,5 +178,18 @@ public class MainActivity extends AppCompatActivity implements PlayerListener {
 
     public void right(View view) {
         rayPlayer.setChannelMode(ChannelMode.CHANNEL_RIGHT);
+    }
+
+    public void changeSpeed(View view) {
+        rayPlayer.setSpeed(1.5f);
+    }
+
+    public void changePitch(View view) {
+        rayPlayer.setPitch(1.5f);
+    }
+
+    public void normal(View view) {
+        rayPlayer.setPitch(1f);
+        rayPlayer.setSpeed(1f);
     }
 }

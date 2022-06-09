@@ -263,3 +263,15 @@ void RayFFmpeg::setChannel(int mode) {
     }
 }
 
+void RayFFmpeg::setPitch(float pitch) {
+    if (NULL != rayAudio) {
+        rayAudio->setPitch(pitch);
+    }
+}
+
+void RayFFmpeg::setSpeed(float speed) {
+    if (NULL != rayAudio) {
+        rayAudio->setSpeed(speed);
+    }
+}
+

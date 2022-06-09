@@ -13,6 +13,12 @@ RayAudio::RayAudio(int index, AVCodecParameters *codecP, PlayStatus *status,
     sampleRate = codecP->sample_rate;
     buffer = (uint8_t *) (av_malloc(sampleRate * 2 * 2));
     callJava = rayCallJava;
+    sampleBuffer = static_cast<SAMPLETYPE *>(malloc(sampleRate * 2 * 2));
+    soundTouch = new SoundTouch();
+    soundTouch->setChannels(2);
+    soundTouch->setSampleRate(sampleRate);
+    soundTouch->setPitch(pitch);
+    soundTouch->setTempo(speed);
 }
 
 RayAudio::~RayAudio() {
@@ -29,7 +35,8 @@ void RayAudio::play() {
     pthread_create(&threadPlay, NULL, playRunnable, this);
 }
 
-int RayAudio::resampleAudio() {
+int RayAudio::resampleAudio(void **pcmBuffer) {
+    dataSize = 0;
     while (NULL != playStatus && !playStatus->exit) {
         if (queue->getQueueSize() == 0) {
             //当前音频流队列没有数据，回调应用层为loading状态
@@ -83,7 +90,7 @@ int RayAudio::resampleAudio() {
                 continue;
             }
             //开始重采样
-            int nb = swr_convert(
+            nb = swr_convert(
                     swrContext,
                     &buffer,
                     avFrame->nb_samples,
@@ -98,6 +105,7 @@ int RayAudio::resampleAudio() {
                 nowTime = clock;
             }
             clock = nowTime;
+            *pcmBuffer = buffer;
             freeAvPacket();
             freeAvFrame();
             swr_free(&swrContext);
@@ -123,10 +131,74 @@ void RayAudio::freeAvPacket() {
     avPacket = NULL;
 }
 
+int RayAudio::getSoundTouchData() {
+//    while (NULL != playStatus && !playStatus->exit) {
+//        out_buffer = NULL;
+//        if (finished) {
+//            finished = false;
+//            dataSize = resampleAudio(reinterpret_cast<void **>(&out_buffer));
+//            if (dataSize > 0) {
+//                for (int i = 0; i < dataSize / 2 + 1; i++) {
+//                    sampleBuffer[i] = (out_buffer[i * 2] | ((out_buffer[i * 2 + 1]) << 8));
+//                }
+//                soundTouch->putSamples(sampleBuffer, nb);
+//                num = soundTouch->receiveSamples(sampleBuffer, dataSize / 4);
+//            } else {
+//                soundTouch->flush();
+//            }
+//        }
+//        if (num == 0) {
+//            finished = true;
+//            continue;
+//        } else {
+//            if (out_buffer == NULL) {
+//                num = soundTouch->receiveSamples(sampleBuffer, dataSize / 4);
+//                if (num == 0) {
+//                    finished = true;
+//                    continue;
+//                }
+//            }
+//            return num;
+//        }
+//    }
+//    return 0;
+    while (playStatus != NULL && !playStatus->exit) {
+        out_buffer = NULL;
+        if (finished) {
+            finished = false;
+            dataSize = resampleAudio(reinterpret_cast<void **>(&out_buffer));
+            if (dataSize > 0) {
+                for (int i = 0; i < dataSize / 2 + 1; i++) {
+                    sampleBuffer[i] = (out_buffer[i * 2] | ((out_buffer[i * 2 + 1]) << 8));
+                }
+                soundTouch->putSamples(sampleBuffer, nb);
+                num = soundTouch->receiveSamples(sampleBuffer, dataSize / 4);
+            } else {
+                soundTouch->flush();
+            }
+        }
+        if (num == 0) {
+            finished = true;
+            continue;
+        } else {
+            if (out_buffer == NULL) {
+                num = soundTouch->receiveSamples(sampleBuffer, dataSize / 4);
+                if (num == 0) {
+                    finished = true;
+                    continue;
+                }
+            }
+            return num;
+        }
+    }
+    return 0;
+}
+
 void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
                        void *pContext) {
     RayAudio *rayAudio = (RayAudio *) pContext;
-    int size = rayAudio->resampleAudio();
+//    int size = rayAudio->resampleAudio(reinterpret_cast<void **>(&rayAudio->out_buffer));
+    int size = rayAudio->getSoundTouchData();
     if (size > 0) {
         rayAudio->clock += size / ((double) (rayAudio->sampleRate * 2 * 2));
         if (rayAudio->clock - rayAudio->lastTime >= 0.1) { //0.1秒回调一次
@@ -134,7 +206,8 @@ void pcmBufferCallback(SLAndroidSimpleBufferQueueItf caller,
             rayAudio->callJava->onCallProgressChange(CHILD_THREAD, rayAudio->clock,
                                                      rayAudio->duration);
         }
-        (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue, rayAudio->buffer, size);
+        (*rayAudio->pcmBufferQueue)->Enqueue(rayAudio->pcmBufferQueue,
+                                             (uint8_t *) rayAudio->sampleBuffer, size * 2 * 2);
     }
 }
 
@@ -344,5 +417,19 @@ void RayAudio::setChannel(int mode) {
         //立体声
         (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 0, false);
         (*pcmMuteSolo)->SetChannelSolo(pcmMuteSolo, 1, false);
+    }
+}
+
+void RayAudio::setPitch(float p) {
+    pitch = p;
+    if (NULL != soundTouch) {
+        soundTouch->setPitch(pitch);
+    }
+}
+
+void RayAudio::setSpeed(float s) {
+    speed = s;
+    if (NULL != soundTouch) {
+        soundTouch->setTempo(speed);
     }
 }

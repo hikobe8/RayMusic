@@ -11,6 +11,9 @@ project("raymusic")
 
 #include ffmpeg *.h files
 include_directories(src/main/cpp/include)
+#include soundtouch
+include_directories(src/main/cpp/soundtouch/include)
+include_directories(src/main/cpp/soundtouch/SoundTouch)
 
 add_library(avcodec-57 SHARED IMPORTED)
 add_library(avformat-57 SHARED IMPORTED)
@@ -58,6 +61,21 @@ add_library( # Sets the name of the library.
         src/main/cpp/RayAudio.cpp
         src/main/cpp/PlayStatus.cpp
         src/main/cpp/RayQueue.cpp
+
+        #soundtouch
+        src/main/cpp/soundtouch/SoundTouch/AAFilter.cpp
+        src/main/cpp/soundtouch/SoundTouch/FIFOSampleBuffer.cpp
+        src/main/cpp/soundtouch/SoundTouch/FIRFilter.cpp
+        src/main/cpp/soundtouch/SoundTouch/cpu_detect_x86.cpp
+        src/main/cpp/soundtouch/SoundTouch/sse_optimized.cpp
+        src/main/cpp/soundtouch/SoundTouch/RateTransposer.cpp
+        src/main/cpp/soundtouch/SoundTouch/SoundTouch.cpp
+        src/main/cpp/soundtouch/SoundTouch/InterpolateCubic.cpp
+        src/main/cpp/soundtouch/SoundTouch/InterpolateLinear.cpp
+        src/main/cpp/soundtouch/SoundTouch/InterpolateShannon.cpp
+        src/main/cpp/soundtouch/SoundTouch/TDStretch.cpp
+        src/main/cpp/soundtouch/SoundTouch/PeakFinder.cpp
+
         )
 
 # Searches for a specified prebuilt library and stores the path as a
